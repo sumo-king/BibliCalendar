@@ -9,8 +9,9 @@ The APIs to be used are the following:
 This API is used for the traditional jewish calendar.
 Link: https://www.hebcal.com/home/developer-apis
 
-## 2. Rapid API
+## 2. Lunar Phase npm package
+
 For the use of the lunar calendar. 
-Link: https://rapidapi.com/MoonAPIcom/api/moon-phase
+Link: [https://rapidapi.com/MoonAPIcom/api/moon-phase](https://www.npmjs.com/package/lunarphase-js)
 
 ## 3. 
