@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react";
 import Card from '@mui/material/Card';
 import { LunarCal } from "./calendar_controllers/lunar.controller";
 import { TraditionCal } from "./calendar_controllers/tradition.controller";
+import { ZadokCalendar } from "./calendar_controllers/zadok.controller";
 
-export const Body = () =>{
-
+export const Body = () => {
+    // Checking window size of client device
     const mediaMatch = window.matchMedia('(min-width: 768px)');
     const [matches, setMatches] = useState(mediaMatch.matches);
 
@@ -12,7 +13,8 @@ export const Body = () =>{
         const handler = e => setMatches(e.matches);
         mediaMatch.addListener(handler);
         return () => mediaMatch.removeListener(handler);
-      });
+      }
+    );
 
     const bodyStyles = {
       container: isRowbased => ({
@@ -21,7 +23,7 @@ export const Body = () =>{
         justifyContent: 'center',
         gap: '5px',
         padding: '1rem'
-    })
+      });
     }
   
     const cardStyles = {
@@ -43,14 +45,7 @@ export const Body = () =>{
           {/* Traditional Jewish calendar */}
           <TraditionCal cardStyles={cardStyles}/>
           {/* Zadok/Jubilees Calendar */}
-          <Card variant='outlined' style={cardStyles}>
-            <h1>Zadok Calendar</h1>
-            <label htmlFor="zadok-month">Month</label>
-            <input type="text" id='zadok-month' disabled={true} />
-            <label htmlFor="">Day</label>
-            <input type="text" />
-    
-          </Card>
+          <ZadokCalendar cardStyles={cardStyles}/>
         </div>
       </div>
     )

@@ -1,16 +1,16 @@
-import { Card } from "@mui/material"
-import { useEffect, useState } from "react"
+import { Card } from "@mui/material";
+import { useEffect, useState } from "react";
 import {/*HebrewCalendar,*/ HDate} from '@hebcal/core';
 
-export const TraditionCal = ({cardStyles}) =>{
+export const TraditionCal = ({ cardStyles }) =>{
 
-    const [tradDate, setTradDate] = useState({day: '', month: ''})
+    const [tradDate, setTradDate] = useState({day: '', month: ''});
 
     useEffect(()=>{
-        const hd = new HDate()
-        setTradDate({day: hd.getDate(), month: hd.getMonth()})
+        const hd = new HDate();
+        setTradDate({day: hd.getDate(), month: hd.getMonth()});
   
-      },[])
+      },[]);
 
     return(
         <Card variant="outlined" style={cardStyles}>
