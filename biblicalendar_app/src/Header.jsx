@@ -1,10 +1,14 @@
+// import {CalendarCheck} from 'lucide-react'
+
 export const Header = () => {
   return (
     <header style={styles.header}>
       <div style={styles.headerContent}>
         <div style={styles.logoContainer}>
-          <span style={styles.logoIcon}>📅</span>
-          <h1 style={styles.logoText}>BibliCalendar</h1>
+          {/* <CalendarCheck style={styles.logoIcon} /> */}
+          <h1 style={styles.logoText}>
+            BibliCalendar
+            </h1>
         </div>
       </div>
     </header>
@@ -38,8 +42,9 @@ const styles = {
   logoText: {
     margin: 0,
     color: '#fff',
-    fontSize: '1.75rem',
-    fontWeight: '600',
+    fontSize: '2.75rem',
+    fontWeight: '300',
     letterSpacing: '0.5px',
+    // height: '3rem'
   },
 }
