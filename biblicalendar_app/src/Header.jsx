@@ -1,35 +1,45 @@
-export const Header = ()=>{
+export const Header = () => {
+  return (
+    <header style={styles.header}>
+      <div style={styles.headerContent}>
+        <div style={styles.logoContainer}>
+          <span style={styles.logoIcon}>📅</span>
+          <h1 style={styles.logoText}>BibliCalendar</h1>
+        </div>
+      </div>
+    </header>
+  );
+};
 
-    const headerStyles = {
-      display: 'flex',
-      border: 'solid black 1px',
-      minHeight: '10vh',
-      justifyContent: 'center',
-      alignItems: 'center',
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: 'white',
-      zIndex: 1000,
-    }
-  
-    // const listStyles = {
-    //   listStyle: 'none',
-    //   display: 'flex',
-    //   flexDirection: 'row',
-    //   gap: '5rem',
-    //   borderRight: ''
-    // }
-    
-    return(
-      <header style={headerStyles}>
-          <h1>BibliCalendar</h1>
-          {/* <ul style={listStyles}>
-            <li style={{padding: '5px', borderRight: 'solid 1px black',borderLeft: '1px solid black'}}>Lunar</li>
-            <li style={{padding: '5px', borderRight: 'solid 1px black',borderLeft: '1px solid black'}}>Traditional</li>
-            <li style={{padding: '5px', borderRight: 'solid 1px black',borderLeft: '1px solid black'}}>Zadok</li>
-          </ul> */}
-        </header>
-    )
-  }
+const styles = {
+  header: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#2c3e50',
+    borderBottom: '3px solid #d4af37',
+    zIndex: 1000,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+  },
+  headerContent: {
+    padding: '1rem 2rem',
+    maxWidth: '1400px',
+    margin: '0 auto',
+  },
+  logoContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+  },
+  logoIcon: {
+    fontSize: '2rem',
+  },
+  logoText: {
+    margin: 0,
+    color: '#fff',
+    fontSize: '1.75rem',
+    fontWeight: '600',
+    letterSpacing: '0.5px',
+  },
+}

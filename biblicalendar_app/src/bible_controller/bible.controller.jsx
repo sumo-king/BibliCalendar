@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Card } from '@mui/material';
+import { useState } from "react";
 
 export const BibleView = () => {
   const [selectedBook, setSelectedBook] = useState('');
@@ -10,7 +9,6 @@ export const BibleView = () => {
   const [error, setError] = useState(null);
   const [translation, setTranslation] = useState('web');
 
-  // Bible books organized by testament
   const bibleBooks = {
     'Old Testament': [
       'Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy',
@@ -32,7 +30,6 @@ export const BibleView = () => {
     ]
   };
 
-  // Chapter counts for each book
   const chapterCounts = {
     'Genesis': 50, 'Exodus': 40, 'Leviticus': 27, 'Numbers': 36, 'Deuteronomy': 34,
     'Joshua': 24, 'Judges': 21, 'Ruth': 4, '1 Samuel': 31, '2 Samuel': 24,
@@ -74,7 +71,6 @@ export const BibleView = () => {
       }
 
       const url = `https://bible-api.com/${encodeURIComponent(query)}?translation=${translation}`;
-      
       const response = await fetch(url);
       
       if (!response.ok) {
@@ -104,105 +100,14 @@ export const BibleView = () => {
     setBibleData(null);
   };
 
-  const styles = {
-    container: {
-      padding: '1rem',
-      maxWidth: '900px',
-      margin: '0 auto',
-    },
-    controlsCard: {
-      padding: '1.5rem',
-      marginBottom: '1rem',
-      borderRadius: '8px',
-    },
-    selectRow: {
-      display: 'flex',
-      gap: '1rem',
-      flexWrap: 'wrap',
-      marginBottom: '1rem',
-    },
-    selectGroup: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '0.5rem',
-      flex: '1',
-      minWidth: '150px',
-    },
-    label: {
-      fontWeight: 'bold',
-      fontSize: '0.9rem',
-      color: '#333',
-    },
-    select: {
-      padding: '0.5rem',
-      borderRadius: '4px',
-      border: '1px solid #ccc',
-      fontSize: '1rem',
-      cursor: 'pointer',
-    },
-    button: {
-      padding: '0.75rem 1.5rem',
-      backgroundColor: '#007bff',
-      color: 'white',
-      border: 'none',
-      borderRadius: '4px',
-      fontSize: '1rem',
-      cursor: 'pointer',
-      fontWeight: 'bold',
-    },
-    contentCard: {
-      padding: '1.5rem',
-      borderRadius: '8px',
-      minHeight: '300px',
-    },
-    reference: {
-      fontSize: '1.5rem',
-      fontWeight: 'bold',
-      marginBottom: '1rem',
-      color: '#007bff',
-    },
-    verseContainer: {
-      marginBottom: '1rem',
-    },
-    verseNumber: {
-      fontWeight: 'bold',
-      color: '#007bff',
-      marginRight: '0.5rem',
-      fontSize: '0.9rem',
-    },
-    verseText: {
-      fontSize: '1.1rem',
-      lineHeight: '1.8',
-      color: '#333',
-    },
-    translationInfo: {
-      marginTop: '2rem',
-      fontSize: '0.9rem',
-      color: '#666',
-      fontStyle: 'italic',
-    },
-    error: {
-      color: '#d32f2f',
-      padding: '1rem',
-      backgroundColor: '#ffebee',
-      borderRadius: '4px',
-    },
-    loading: {
-      textAlign: 'center',
-      padding: '2rem',
-      fontSize: '1.2rem',
-      color: '#666',
-    },
-  };
-
   return (
-    <div style={styles.container}>
-      <Card variant="outlined" style={styles.controlsCard}>
-        <h2>Select Scripture</h2>
+    <div style={styles.bibleContainer}>
+      <div style={styles.bibleCard}>
+        <h2 style={styles.bibleHeading}>Select Scripture</h2>
         
-        <div style={styles.selectRow}>
+        <div style={styles.selectGrid}>
           <div style={styles.selectGroup}>
-            <label style={styles.label}>Translation</label>
+            <label style={styles.selectLabel}>Translation</label>
             <select
               style={styles.select}
               value={translation}
@@ -217,7 +122,7 @@ export const BibleView = () => {
           </div>
 
           <div style={styles.selectGroup}>
-            <label style={styles.label}>Book</label>
+            <label style={styles.selectLabel}>Book</label>
             <select
               style={styles.select}
               value={selectedBook}
@@ -237,7 +142,7 @@ export const BibleView = () => {
           </div>
 
           <div style={styles.selectGroup}>
-            <label style={styles.label}>Chapter</label>
+            <label style={styles.selectLabel}>Chapter</label>
             <select
               style={styles.select}
               value={selectedChapter}
@@ -257,7 +162,7 @@ export const BibleView = () => {
           </div>
 
           <div style={styles.selectGroup}>
-            <label style={styles.label}>Verse (Optional)</label>
+            <label style={styles.selectLabel}>Verse (Optional)</label>
             <input
               type="number"
               style={styles.select}
@@ -271,55 +176,376 @@ export const BibleView = () => {
         </div>
 
         <button
-          style={styles.button}
+          style={{...styles.button, ...((!selectedBook || !selectedChapter || loading) ? styles.buttonDisabled : {})}}
           onClick={fetchBibleText}
           disabled={!selectedBook || !selectedChapter || loading}
         >
           {loading ? 'Loading...' : 'Read Scripture'}
         </button>
-      </Card>
+      </div>
 
-      <Card variant="outlined" style={styles.contentCard}>
+      <div style={styles.bibleCard}>
         {error && (
-          <div style={styles.error}>
+          <div style={styles.errorBox}>
             {error}
           </div>
         )}
 
         {loading && (
-          <div style={styles.loading}>
-            Loading scripture...
+          <div style={styles.loadingBox}>
+            <div style={styles.spinner}></div>
+            <p>Loading scripture...</p>
           </div>
         )}
 
         {bibleData && !loading && (
-          <>
-            <div style={styles.reference}>
-              {bibleData.reference}
-            </div>
+          <div style={styles.scriptureContent}>
+            <h3 style={styles.reference}>{bibleData.reference}</h3>
             
-            {bibleData.verses.map((verse, index) => (
-              <div key={index} style={styles.verseContainer}>
-                <span style={styles.verseNumber}>{verse.verse}</span>
-                <span style={styles.verseText}>{verse.text}</span>
-              </div>
-            ))}
+            <div style={styles.versesContainer}>
+              {bibleData.verses.map((verse, index) => (
+                <div key={index} style={styles.verseBlock}>
+                  <span style={styles.verseNumber}>{verse.verse}</span>
+                  <span style={styles.verseText}>{verse.text}</span>
+                </div>
+              ))}
+            </div>
 
             {bibleData.translation_name && (
               <div style={styles.translationInfo}>
                 Translation: {bibleData.translation_name}
-                {bibleData.translation_note && ` - ${bibleData.translation_note}`}
+                {bibleData.translation_note && ` — ${bibleData.translation_note}`}
               </div>
             )}
-          </>
+          </div>
         )}
 
         {!bibleData && !loading && !error && (
-          <div style={styles.loading}>
-            Select a book and chapter to begin reading
+          <div style={styles.emptyState}>
+            <span style={styles.emptyStateIcon}>📖</span>
+            <p style={styles.emptyStateText}>Select a book and chapter to begin reading</p>
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
+};
+
+const styles = {
+  app: {
+    minHeight: '100vh',
+    backgroundColor: '#f5f5f0',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  },
+  header: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#2c3e50',
+    borderBottom: '3px solid #d4af37',
+    zIndex: 1000,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+  },
+  headerContent: {
+    padding: '1rem 2rem',
+    maxWidth: '1400px',
+    margin: '0 auto',
+  },
+  logoContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+  },
+  logoIcon: {
+    fontSize: '2rem',
+  },
+  logoText: {
+    margin: 0,
+    color: '#fff',
+    fontSize: '1.75rem',
+    fontWeight: '600',
+    letterSpacing: '0.5px',
+  },
+  body: {
+    paddingTop: '80px',
+    paddingBottom: '100px',
+    minHeight: '100vh',
+  },
+  mainContent: {
+    padding: '2rem 1rem',
+    maxWidth: '1400px',
+    margin: '0 auto',
+  },
+  calendarSection: {
+    marginBottom: '2rem',
+  },
+  sectionTitle: {
+    fontSize: '1.5rem',
+    color: '#2c3e50',
+    marginBottom: '1.5rem',
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  cardGrid: {
+    display: 'flex',
+    gap: '1.5rem',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: '12px',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+    overflow: 'hidden',
+    minWidth: '280px',
+    maxWidth: '400px',
+    flex: '1',
+    transition: 'transform 0.2s, box-shadow 0.2s',
+    border: '1px solid #e0e0e0',
+  },
+  cardHeader: {
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    padding: '1.25rem',
+    borderBottom: '2px solid #d4af37',
+  },
+  cardTitle: {
+    margin: 0,
+    color: '#fff',
+    fontSize: '1.25rem',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  cardBody: {
+    padding: '1.5rem',
+  },
+  moonPhaseDisplay: {
+    textAlign: 'center',
+    marginBottom: '1.5rem',
+    padding: '1rem',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+  },
+  moonEmoji: {
+    fontSize: '4rem',
+    marginBottom: '0.5rem',
+  },
+  moonPhaseName: {
+    fontSize: '1.1rem',
+    color: '#495057',
+    fontWeight: '500',
+  },
+  dataRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0.75rem 0',
+    borderBottom: '1px solid #e9ecef',
+  },
+  dataLabel: {
+    fontSize: '0.95rem',
+    color: '#6c757d',
+    fontWeight: '500',
+  },
+  dataValue: {
+    fontSize: '1.1rem',
+    color: '#2c3e50',
+    fontWeight: '600',
+  },
+  dataValueSmall: {
+    fontSize: '1rem',
+    color: '#495057',
+    fontWeight: '500',
+  },
+  sabbathHighlight: {
+    color: '#d4af37',
+    fontWeight: '700',
+  },
+  comingSoon: {
+    textAlign: 'center',
+    padding: '2rem 1rem',
+  },
+  comingSoonIcon: {
+    fontSize: '3rem',
+    display: 'block',
+    marginBottom: '1rem',
+  },
+  comingSoonText: {
+    color: '#6c757d',
+    fontSize: '0.95rem',
+    margin: 0,
+  },
+  tabBar: {
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '1rem',
+    padding: '1rem',
+    backgroundColor: '#fff',
+    borderTop: '2px solid #d4af37',
+    boxShadow: '0 -2px 12px rgba(0,0,0,0.1)',
+    zIndex: 1000,
+  },
+  tab: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    padding: '0.75rem 2rem',
+    border: '2px solid #e0e0e0',
+    backgroundColor: '#f8f9fa',
+    color: '#495057',
+    borderRadius: '50px',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    fontWeight: '600',
+    transition: 'all 0.3s',
+    outline: 'none',
+  },
+  tabActive: {
+    backgroundColor: '#2c3e50',
+    color: '#fff',
+    borderColor: '#2c3e50',
+    transform: 'scale(1.05)',
+  },
+  tabIcon: {
+    fontSize: '1.25rem',
+  },
+  bibleContainer: {
+    maxWidth: '900px',
+    margin: '0 auto',
+  },
+  bibleCard: {
+    backgroundColor: '#fff',
+    borderRadius: '12px',
+    padding: '2rem',
+    marginBottom: '1.5rem',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+    border: '1px solid #e0e0e0',
+  },
+  bibleHeading: {
+    margin: '0 0 1.5rem 0',
+    color: '#2c3e50',
+    fontSize: '1.5rem',
+    fontWeight: '600',
+  },
+  selectGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '1rem',
+    marginBottom: '1.5rem',
+  },
+  selectGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+  },
+  selectLabel: {
+    fontSize: '0.9rem',
+    fontWeight: '600',
+    color: '#495057',
+  },
+  select: {
+    padding: '0.75rem',
+    borderRadius: '8px',
+    border: '2px solid #e0e0e0',
+    fontSize: '1rem',
+    cursor: 'pointer',
+    transition: 'border-color 0.2s',
+    backgroundColor: '#fff',
+    outline: 'none',
+  },
+  button: {
+    width: '100%',
+    padding: '1rem',
+    backgroundColor: '#2c3e50',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '1.1rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+    outline: 'none',
+  },
+  buttonDisabled: {
+    backgroundColor: '#95a5a6',
+    cursor: 'not-allowed',
+  },
+  errorBox: {
+    color: '#c0392b',
+    padding: '1rem',
+    backgroundColor: '#fadbd8',
+    borderRadius: '8px',
+    border: '1px solid #e74c3c',
+  },
+  loadingBox: {
+    textAlign: 'center',
+    padding: '3rem',
+    color: '#6c757d',
+  },
+  spinner: {
+    width: '40px',
+    height: '40px',
+    border: '4px solid #f3f3f3',
+    borderTop: '4px solid #2c3e50',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite',
+    margin: '0 auto 1rem',
+  },
+  scriptureContent: {
+    padding: '1rem 0',
+  },
+  reference: {
+    fontSize: '1.75rem',
+    fontWeight: '700',
+    color: '#2c3e50',
+    marginBottom: '1.5rem',
+    paddingBottom: '0.75rem',
+    borderBottom: '3px solid #d4af37',
+  },
+  versesContainer: {
+    marginBottom: '2rem',
+  },
+  verseBlock: {
+    marginBottom: '1.25rem',
+    lineHeight: '1.8',
+  },
+  verseNumber: {
+    fontWeight: '700',
+    color: '#d4af37',
+    marginRight: '0.75rem',
+    fontSize: '0.9rem',
+    verticalAlign: 'super',
+    // fontSize: '0.8rem',
+  },
+  verseText: {
+    fontSize: '1.1rem',
+    color: '#2c3e50',
+    lineHeight: '1.8',
+  },
+  translationInfo: {
+    marginTop: '2rem',
+    paddingTop: '1rem',
+    borderTop: '1px solid #e0e0e0',
+    fontSize: '0.9rem',
+    color: '#6c757d',
+    fontStyle: 'italic',
+  },
+  emptyState: {
+    textAlign: 'center',
+    padding: '3rem 1rem',
+  },
+  emptyStateIcon: {
+    fontSize: '4rem',
+    display: 'block',
+    marginBottom: '1rem',
+  },
+  emptyStateText: {
+    color: '#6c757d',
+    fontSize: '1.1rem',
+    margin: 0,
+  },
 };
