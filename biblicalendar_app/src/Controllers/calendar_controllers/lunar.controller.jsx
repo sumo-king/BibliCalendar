@@ -10,11 +10,13 @@ export const LunarCal = () => {
     month: null
   });
 
+
+
   useEffect(() => {
     const currentDate = new Date();
     const moonPhase = Moon.lunarPhase(currentDate);
     const moonDay = Moon.lunarAge();
-    const phaseEmoji = Moon.emojiForLunarPhase();
+    const phaseEmoji = Moon.emojiForLunarPhase(moonPhase);
     
     const calculateLunarMonth = (date) => {
       const year = date.getFullYear();
@@ -48,6 +50,23 @@ export const LunarCal = () => {
     return day;
   };
 
+  const weeklySabbathAlert = ()=>{
+    const sabbathDays = [8, 15, 22, 29];
+    const moonDay = Math.floor(Moon.lunarAge());
+    const isTodaySabbath = sabbathDays.includes(moonDay);
+    const isSabbathClose = sabbathDays.some(sabbathDay => Math.abs(sabbathDay - moonDay) <=2 && sabbathDay > moonDay);
+
+    if(isSabbathClose && !isTodaySabbath){
+      return("Reminder: A Sabbath day is approaching soon in the lunar calendar.");
+    } else
+    if(isTodaySabbath){
+      return("Reminder: Today is a Sabbath day according to the lunar calendar.");
+    } else{
+      return("");
+    }
+  }
+
+
   return (
     <div style={styles.card}>
       <div style={styles.cardHeader}>
@@ -59,11 +78,17 @@ export const LunarCal = () => {
           <div style={styles.moonPhaseName}>{lunarDate.phase}</div>
         </div>
         
+        
+        <div style={styles.dataRow}>
+          {/* <span style={styles.dataLabel}>Alert</span> */}
+          <span style={styles.dataValue}>{weeklySabbathAlert()}</span>
+        </div>
+
         <div style={styles.dataRow}>
           <span style={styles.dataLabel}>Month</span>
           <span style={styles.dataValue}>{lunarDate.month || '—'}</span>
         </div>
-        
+
         <div style={styles.dataRow}>
           <span style={styles.dataLabel}>Day</span>
           <span style={{...styles.dataValue, ...(typeof isSabbath(lunarDate.day) === 'string' ? styles.sabbathHighlight : {})}}>
