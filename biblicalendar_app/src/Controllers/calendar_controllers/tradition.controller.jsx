@@ -1,97 +1,70 @@
 import { useEffect, useState } from "react";
-import { HDate} from '@hebcal/core';
-
+import { HDate } from '@hebcal/core';
 
 export const TraditionCal = () => {
+  const [tradDate, setTradDate] = useState({
+    day: '',
+    month: '',
+    monthName: '',
+    year: '',
+    hebrewDate: '',
+    dayOfWeek: '',
+    isShabbat: false,
+    parsha: ''
+  });
 
-      const [tradDate, setTradDate] = useState({day: '', month: ''});
+  useEffect(() => {
+    const hd = new HDate();
 
-    useEffect(()=>{
-        const hd = new HDate();
-        setTradDate({day: hd.getDate(), month: hd.getMonth()});
-  
-      },[]);
-
-    //    const isSabbath = (day) => {
-    // if (day === 8 || day === 15 || day === 22 || day === 29) {
-    //   return "Sabbath";
-    // }
-    // return day;
-    //     };
-
-  const weeklySabbathAlert = ()=>{
-      // const sabbathDays = [8, 15, 22, 29];
-      // const moonDay = tradDate.day;
-      // const isTodaySabbath = sabbathDays.includes(moonDay);
-      // const isSabbathClose = sabbathDays.some(sabbathDay => Math.abs(sabbathDay - moonDay) <=2 && sabbathDay > moonDay);
-  
-      // if(isSabbathClose && !isTodaySabbath){
-      //   return("Reminder: A Sabbath day is approaching soon in the lunar calendar.");
-      // } else
-      // if(isTodaySabbath){
-      //   return("Reminder: Today is a Sabbath day according to the lunar calendar.");
-      // } else{
-      //   return("");
-      // }
-    }
+    console.log("Error CHECKING",hd.getMonthName() )
+    
+    setTradDate({
+      day: hd.getDate(),
+      month: hd.getMonth(),
+      monthName: hd.getMonthName(), // Hebrew month name
+      year: hd.getFullYear(),
+      hebrewDate: hd.toString(), // Full Hebrew date string
+      dayOfWeek: hd.greg().toLocaleDateString('en-US', { weekday: 'long' }),
+      isShabbat: hd.getDay() === 6, // Saturday is day 6
+      parsha: '' // Could be enhanced with Sedra class for Torah portion
+    });
+  }, []);
 
   return (
     <div style={styles.card}>
       <div style={styles.cardHeader}>
-        <h3 style={styles.cardTitle}>Lunar Calendar</h3>
+        <h3 style={styles.cardTitle}>Traditional Calendar</h3>
       </div>
       <div style={styles.cardBody}>
-        
-        
+        <div style={styles.hebrewDateDisplay}>
+          <div style={styles.hebrewDateText}>{tradDate.hebrewDate}</div>
+          <div style={styles.dayOfWeekText}>{tradDate.dayOfWeek}</div>
+          {tradDate.isShabbat && (
+            <div style={styles.shabbatBadge}>🕯️ Shabbat</div>
+          )}
+        </div>
+
         <div style={styles.dataRow}>
-          {/* <span style={styles.dataLabel}>Alert</span> */}
-          <span style={styles.dataValue}>{weeklySabbathAlert()}</span>
+          <span style={styles.dataLabel}>Hebrew Year</span>
+          <span style={styles.dataValue}>{tradDate.year}</span>
         </div>
 
         <div style={styles.dataRow}>
           <span style={styles.dataLabel}>Month</span>
-          <span style={styles.dataValue}>{tradDate.month}</span>
+          <span style={styles.dataValue}>{tradDate.monthName} ({tradDate.month})</span>
         </div>
 
         <div style={styles.dataRow}>
           <span style={styles.dataLabel}>Day</span>
-          <span style={{...styles.dataValue/*, ...(typeof isSabbath(lunarDate.day) === 'string' ? styles.sabbathHighlight : {})*/}}>
-            {tradDate.day}
-          </span>
+          <span style={styles.dataValue}>{tradDate.day}</span>
         </div>
-        
       </div>
     </div>
-    // <div style={styles.card}>
-    //   <div style={styles.cardHeader}>
-    //     <h3 style={styles.cardTitle}>Traditional Calendar</h3>
-    //   </div>
-    //   <div style={styles.cardBody}>
-    //     <table>
-    //         <thead>
-    //           <tr>
-    //             <th>Month</th>
-    //             <td>{tradDate.month}</td>
-    //           </tr>
-    //         </thead>
-    //         <tbody>
-    //           <tr>
-    //           <th>Day</th>
-    //             <td>{tradDate.day}</td>
-    //           </tr>
-    //         </tbody>
-    //       </table>
-    //     {/* <div style={styles.comingSoon}>
-    //       <span style={styles.comingSoonIcon}>🕍</span>
-    //       <p style={styles.comingSoonText}>Traditional Jewish calendar details coming soon</p>
-    //     </div> */}
-    //   </div>
-    // </div>
   );
 };
 
 const styles = {
-    cardGrid: {
+  cardGrid: {
     display: 'flex',
     gap: '1.5rem',
     justifyContent: 'center',
@@ -122,6 +95,36 @@ const styles = {
   },
   cardBody: {
     padding: '1.5rem',
+  },
+  hebrewDateDisplay: {
+    textAlign: 'center',
+    marginBottom: '1.5rem',
+    padding: '1.25rem',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    border: '2px solid #667eea',
+  },
+  hebrewDateText: {
+    fontSize: '1.3rem',
+    color: '#2c3e50',
+    fontWeight: '600',
+    marginBottom: '0.5rem',
+    fontFamily: 'Georgia, serif',
+  },
+  dayOfWeekText: {
+    fontSize: '0.95rem',
+    color: '#6c757d',
+    marginBottom: '0.5rem',
+  },
+  shabbatBadge: {
+    display: 'inline-block',
+    marginTop: '0.5rem',
+    padding: '0.4rem 0.9rem',
+    backgroundColor: '#d4af37',
+    color: '#fff',
+    borderRadius: '20px',
+    fontSize: '0.9rem',
+    fontWeight: '600',
   },
   moonPhaseDisplay: {
     textAlign: 'center',
@@ -179,4 +182,4 @@ const styles = {
     fontSize: '0.95rem',
     margin: 0,
   },
-}
+};

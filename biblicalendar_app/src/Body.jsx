@@ -1,4 +1,4 @@
-import { BibleView } from "./Controllers/bible_controller/bible.controller";
+import BibleView  from "./Controllers/bible_controller/bible.controller";
 import { CalendarView } from "./Views/calendar_view";
 import { BookOpen, Calendar1Icon } from 'lucide-react';
 
