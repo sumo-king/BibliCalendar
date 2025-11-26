@@ -39,7 +39,7 @@ To deploy this project locally or for production:
 
 1.  **Clone the repository**:
     ```bash
-    git clone <repository-url>
+    git clone <https://github.com/sumo-king/BibliCalendar.git>
     cd biblicalendar_app
     ```
 
