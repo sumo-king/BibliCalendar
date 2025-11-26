@@ -7,7 +7,7 @@ function App() {
 
   const mediaMatch = window.matchMedia('(min-width: 768px)');
   const [matches, setMatches] = useState(mediaMatch.matches);
-  const [currentView, setCurrentView] = useState(0);
+  const [currentView, setCurrentView] = useState(1);
 
   useEffect(() => {
     const handler = e => setMatches(e.matches);
@@ -17,7 +17,7 @@ function App() {
 
   return (
     <div style={homePageStyles}>
-      <Header/>
+      <Header />
       <Body currentView={currentView} setCurrentView={setCurrentView} matches={matches} />
     </div>
   );

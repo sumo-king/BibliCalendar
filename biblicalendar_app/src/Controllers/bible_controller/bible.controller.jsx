@@ -1,6 +1,18 @@
 import { useState } from "react";
+import {
+  Book,
+  FileText,
+  Sparkles,
+  AlertTriangle,
+  Menu,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Library
+} from 'lucide-react';
 
-export default function BibleView() {
+export default function BibleView({ matches }) {
   const [selectedBook, setSelectedBook] = useState('');
   const [selectedChapter, setSelectedChapter] = useState('');
   const [selectedVerse, setSelectedVerse] = useState('');
@@ -8,6 +20,8 @@ export default function BibleView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [translation, setTranslation] = useState('web');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [highlightedVerses, setHighlightedVerses] = useState(new Set());
 
   const bibleBooks = {
     'Old Testament': [
@@ -49,10 +63,10 @@ export default function BibleView() {
   };
 
   const translations = [
-    { id: 'web', name: 'World English Bible' },
-    { id: 'kjv', name: 'King James Version' },
-    { id: 'bbe', name: 'Bible in Basic English' },
-    { id: 'clementine', name: 'Clementine Latin Vulgate' }
+    { id: 'web', name: 'WEB' },
+    { id: 'kjv', name: 'KJV' },
+    { id: 'bbe', name: 'BBE' },
+    { id: 'clementine', name: 'Vulgate' }
   ];
 
   const fetchBibleText = async () => {
@@ -62,6 +76,7 @@ export default function BibleView() {
     }
     setLoading(true);
     setError(null);
+    setHighlightedVerses(new Set()); // Reset highlights on new fetch
 
     try {
       let query = `${selectedBook} ${selectedChapter}`;
@@ -70,13 +85,14 @@ export default function BibleView() {
       }
       const url = `https://bible-api.com/${encodeURIComponent(query)}?translation=${translation}`;
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch Bible text');
       }
 
       const data = await response.json();
       setBibleData(data);
+      if (!matches) setIsSidebarOpen(false); // Close sidebar on mobile after fetch
     } catch (err) {
       setError(err.message);
       setBibleData(null);
@@ -100,29 +116,30 @@ export default function BibleView() {
 
   const navigateChapter = async (direction) => {
     if (!selectedBook || !selectedChapter) return;
-    
+
     const currentChapter = Number(selectedChapter);
     const maxChapter = chapterCounts[selectedBook];
     let newChapter;
-    
+
     if (direction === 'prev') {
       newChapter = currentChapter <= 1 ? 1 : currentChapter - 1;
     } else {
       newChapter = currentChapter >= maxChapter ? maxChapter : currentChapter + 1;
     }
-    
+
     if (newChapter === currentChapter) return;
-    
+
     setSelectedChapter(String(newChapter));
     setSelectedVerse('');
-    
+    setHighlightedVerses(new Set()); // Reset highlights
+
     try {
       setLoading(true);
       setError(null);
       const query = `${selectedBook} ${newChapter}`;
       const url = `https://bible-api.com/${encodeURIComponent(query)}?translation=${translation}`;
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch Bible text');
       }
@@ -137,12 +154,38 @@ export default function BibleView() {
     }
   };
 
+  const toggleHighlight = (index) => {
+    const newHighlights = new Set(highlightedVerses);
+    if (newHighlights.has(index)) {
+      newHighlights.delete(index);
+    } else {
+      newHighlights.add(index);
+    }
+    setHighlightedVerses(newHighlights);
+  };
+
   return (
     <div style={styles.bibleContainer}>
+      {/* Mobile Menu Toggle - Only show on mobile (!matches) */}
+      {!matches && (
+        <button
+          style={styles.menuToggle}
+          onClick={() => setIsSidebarOpen(true)}
+          aria-label="Open menu"
+        >
+          <Menu size={24} />
+        </button>
+      )}
+
+      {/* Sidebar Overlay - Only on mobile */}
+      {!matches && isSidebarOpen && (
+        <div style={styles.overlay} onClick={() => setIsSidebarOpen(false)} />
+      )}
+
       {/* Navigation Arrows */}
-      {selectedBook && selectedChapter && (
+      {selectedBook && selectedChapter && !isSidebarOpen && (
         <>
-          <button 
+          <button
             style={{
               ...styles.navigationArrow,
               ...styles.arrowLeft,
@@ -152,12 +195,10 @@ export default function BibleView() {
             disabled={Number(selectedChapter) <= 1}
             aria-label="Previous chapter"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
+            <ChevronLeft size={24} />
           </button>
-          
-          <button 
+
+          <button
             style={{
               ...styles.navigationArrow,
               ...styles.arrowRight,
@@ -167,21 +208,34 @@ export default function BibleView() {
             disabled={Number(selectedChapter) >= chapterCounts[selectedBook]}
             aria-label="Next chapter"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
+            <ChevronRight size={24} />
           </button>
         </>
       )}
 
-      {/* Scripture Selection Card */}
-      <div style={styles.selectionCard}>
+      {/* Scripture Selection Card / Sidebar */}
+      <div style={{
+        ...styles.selectionCard,
+        ...(!matches ? styles.mobileSidebar : {}),
+        ...(!matches && isSidebarOpen ? styles.mobileSidebarOpen : {})
+      }}>
+        {!matches && (
+          <button
+            style={styles.closeButton}
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <X size={24} />
+          </button>
+        )}
+
         <div style={styles.cardHeader}>
-          <div style={styles.headerIcon}>📖</div>
-          <h2 style={styles.cardHeading}>Sacred Scripture</h2>
-          <p style={styles.cardSubheading}>Select a passage to begin your reading</p>
+          <Book size={28} style={styles.headerIcon} />
+          <div>
+            <h2 style={styles.cardHeading}>Scripture</h2>
+            <p style={styles.cardSubheading}>Select passage</p>
+          </div>
         </div>
-        
+
         <div style={styles.selectionBody}>
           {/* Translation Selector */}
           <div style={styles.translationSection}>
@@ -206,7 +260,7 @@ export default function BibleView() {
           <div style={styles.selectionsGrid}>
             <div style={styles.selectGroup}>
               <label style={styles.selectLabel}>
-                <span style={styles.labelIcon}>📚</span>
+                <Library size={16} />
                 Book
               </label>
               <select
@@ -214,7 +268,7 @@ export default function BibleView() {
                 value={selectedBook}
                 onChange={handleBookChange}
               >
-                <option value="">Choose a book...</option>
+                <option value="">Choose...</option>
                 {Object.entries(bibleBooks).map(([testament, books]) => (
                   <optgroup key={testament} label={testament} style={styles.optgroup}>
                     {books.map(book => (
@@ -229,22 +283,22 @@ export default function BibleView() {
 
             <div style={styles.selectGroup}>
               <label style={styles.selectLabel}>
-                <span style={styles.labelIcon}>📄</span>
+                <FileText size={16} />
                 Chapter
               </label>
               <select
-                style={{...styles.select, ...((!selectedBook) ? styles.selectDisabled : {})}}
+                style={{ ...styles.select, ...((!selectedBook) ? styles.selectDisabled : {}) }}
                 value={selectedChapter}
                 onChange={handleChapterChange}
                 disabled={!selectedBook}
               >
-                <option value="">Select chapter...</option>
+                <option value="">Select...</option>
                 {selectedBook && Array.from(
                   { length: chapterCounts[selectedBook] || 0 },
                   (_, i) => i + 1
                 ).map(num => (
                   <option key={num} value={num}>
-                    Chapter {num}
+                    {num}
                   </option>
                 ))}
               </select>
@@ -252,15 +306,15 @@ export default function BibleView() {
 
             <div style={styles.selectGroup}>
               <label style={styles.selectLabel}>
-                <span style={styles.labelIcon}>✨</span>
-                Verse <span style={styles.optionalBadge}>Optional</span>
+                <Sparkles size={16} />
+                Verse <span style={styles.optionalBadge}>Opt</span>
               </label>
               <input
                 type="number"
-                style={{...styles.select, ...((!selectedChapter) ? styles.selectDisabled : {})}}
+                style={{ ...styles.select, ...((!selectedChapter) ? styles.selectDisabled : {}) }}
                 value={selectedVerse}
                 onChange={(e) => setSelectedVerse(e.target.value)}
-                placeholder="All verses"
+                placeholder="All"
                 min="1"
                 disabled={!selectedChapter}
               />
@@ -277,13 +331,13 @@ export default function BibleView() {
           >
             {loading ? (
               <>
-                <span style={styles.buttonSpinner}></span>
-                Loading...
+                <Loader2 size={20} className="animate-spin" style={styles.spin} />
+                <span>Loading...</span>
               </>
             ) : (
               <>
-                <span>📖</span>
-                Read Scripture
+                <Book size={20} />
+                <span>Read</span>
               </>
             )}
           </button>
@@ -294,14 +348,14 @@ export default function BibleView() {
       <div style={styles.scriptureCard}>
         {error && (
           <div style={styles.errorBox}>
-            <span style={styles.errorIcon}>⚠️</span>
+            <AlertTriangle size={24} />
             <span>{error}</span>
           </div>
         )}
 
         {loading && (
           <div style={styles.loadingBox}>
-            <div style={styles.spinner}></div>
+            <Loader2 size={40} style={styles.spin} />
             <p style={styles.loadingText}>Loading scripture...</p>
           </div>
         )}
@@ -309,10 +363,17 @@ export default function BibleView() {
         {bibleData && !loading && (
           <div style={styles.scriptureContent}>
             <h3 style={styles.reference}>{bibleData.reference}</h3>
-            
+
             <div style={styles.versesContainer}>
               {bibleData.verses.map((verse, index) => (
-                <div key={index} style={styles.verseBlock}>
+                <div
+                  key={index}
+                  style={{
+                    ...styles.verseBlock,
+                    ...(highlightedVerses.has(index) ? styles.verseHighlighted : {})
+                  }}
+                  onClick={() => toggleHighlight(index)}
+                >
                   <span style={styles.verseNumber}>{verse.verse}</span>
                   <span style={styles.verseText}>{verse.text}</span>
                 </div>
@@ -330,9 +391,9 @@ export default function BibleView() {
 
         {!bibleData && !loading && !error && (
           <div style={styles.emptyState}>
-            <span style={styles.emptyStateIcon}>📖</span>
-            <p style={styles.emptyStateText}>Your selected scripture will appear here</p>
-            <p style={styles.emptyStateSubtext}>Choose a book and chapter above to begin</p>
+            <Book size={64} style={styles.emptyStateIcon} />
+            <p style={styles.emptyStateText}>Select a passage</p>
+            <p style={styles.emptyStateSubtext}>Choose a book and chapter to begin</p>
           </div>
         )}
       </div>
@@ -342,298 +403,330 @@ export default function BibleView() {
 
 const styles = {
   bibleContainer: {
-    maxWidth: '900px',
+    maxWidth: '1000px',
     margin: '0 auto',
     padding: '0 1rem',
     position: 'relative',
+    // Removed display: flex to restore stacked layout on desktop
+  },
+  menuToggle: {
+    position: 'fixed',
+    top: '1rem', // Moved to top
+    left: '1rem', // Moved to left
+    width: '48px',
+    height: '48px',
+    borderRadius: '50%',
+    backgroundColor: '#2c3e50',
+    color: '#fff',
+    border: 'none',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+    cursor: 'pointer',
+  },
+  overlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    zIndex: 998,
+    backdropFilter: 'blur(2px)',
+  },
+  mobileSidebar: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: '85%',
+    maxWidth: '320px',
+    margin: 0,
+    borderRadius: '0 16px 16px 0',
+    transform: 'translateX(-100%)',
+    transition: 'transform 0.3s ease',
+    zIndex: 999,
+    height: '100vh',
+    overflowY: 'auto',
+    boxShadow: '4px 0 16px rgba(0,0,0,0.1)',
+  },
+  mobileSidebarOpen: {
+    transform: 'translateX(0)',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: '1rem',
+    right: '1rem',
+    background: 'none',
+    border: 'none',
+    color: '#6c757d',
+    cursor: 'pointer',
+    padding: '0.5rem',
   },
   navigationArrow: {
     position: 'fixed',
     top: '50%',
     transform: 'translateY(-50%)',
-    width: '50px',
-    height: '50px',
-    backgroundColor: '#2c3e50',
-    color: '#fff',
-    border: 'none',
+    width: '40px',
+    height: '40px',
+    backgroundColor: '#fff',
+    color: '#2c3e50',
+    border: '1px solid #e0e0e0',
+    borderRadius: '50%',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'all 0.3s ease',
+    transition: 'all 0.2s ease',
     zIndex: 100,
-    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
   },
   arrowLeft: {
-    left: '1rem',
-    borderRadius: '0 25px 25px 0',
+    left: '2rem',
   },
   arrowRight: {
-    right: '1rem',
-    borderRadius: '25px 0 0 25px',
+    right: '2rem',
   },
   arrowDisabled: {
-    backgroundColor: '#95a5a6',
-    cursor: 'not-allowed',
     opacity: 0.5,
+    cursor: 'not-allowed',
+    backgroundColor: '#f8f9fa',
   },
   selectionCard: {
     backgroundColor: '#fff',
-    borderRadius: '16px',
-    marginBottom: '2rem',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-    border: '1px solid #e8e8e8',
-    overflow: 'hidden',
+    borderRadius: '12px',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+    border: '1px solid #f0f0f0',
+    // Removed width: 300px, flexShrink, sticky, top to restore stacked layout
+    marginBottom: '2rem', // Add margin bottom for stacked layout
   },
   cardHeader: {
-    background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
-    padding: '2.5rem 2rem',
-    textAlign: 'center',
-    borderBottom: '3px solid #d4af37',
+    padding: '1.5rem',
+    borderBottom: '1px solid #f0f0f0',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
   },
   headerIcon: {
-    fontSize: '3rem',
-    marginBottom: '0.75rem',
+    color: '#2c3e50',
   },
   cardHeading: {
-    margin: '0 0 0.5rem 0',
-    color: '#fff',
-    fontSize: '2rem',
+    margin: 0,
+    color: '#2c3e50',
+    fontSize: '1.25rem',
     fontWeight: '600',
-    letterSpacing: '0.5px',
   },
   cardSubheading: {
     margin: 0,
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: '1rem',
-    fontWeight: '400',
+    color: '#6c757d',
+    fontSize: '0.875rem',
   },
   selectionBody: {
-    padding: '2rem',
+    padding: '1.5rem',
   },
   translationSection: {
-    marginBottom: '2rem',
-    paddingBottom: '2rem',
-    borderBottom: '2px solid #f0f0f0',
+    marginBottom: '1.5rem',
   },
   sectionLabel: {
     display: 'block',
-    fontSize: '0.9rem',
+    fontSize: '0.75rem',
     fontWeight: '600',
-    color: '#2c3e50',
-    marginBottom: '1rem',
+    color: '#6c757d',
+    marginBottom: '0.75rem',
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
   },
   translationButtons: {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: '0.75rem',
+    gap: '0.5rem',
   },
   translationButton: {
-    padding: '0.65rem 1.25rem',
-    borderRadius: '8px',
-    border: '2px solid #e0e0e0',
+    padding: '0.4rem 0.8rem',
+    borderRadius: '6px',
+    border: '1px solid #e0e0e0',
     backgroundColor: '#fff',
     color: '#495057',
-    fontSize: '0.9rem',
+    fontSize: '0.8rem',
     fontWeight: '500',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
-    outline: 'none',
   },
   translationButtonActive: {
     backgroundColor: '#2c3e50',
     color: '#fff',
     borderColor: '#2c3e50',
-    transform: 'scale(1.02)',
   },
   selectionsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-    gap: '1.5rem',
-    marginBottom: '2rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+    marginBottom: '1.5rem',
   },
   selectGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.75rem',
+    gap: '0.5rem',
   },
   selectLabel: {
-    fontSize: '0.9rem',
-    fontWeight: '600',
+    fontSize: '0.85rem',
+    fontWeight: '500',
     color: '#2c3e50',
     display: 'flex',
     alignItems: 'center',
     gap: '0.5rem',
   },
-  labelIcon: {
-    fontSize: '1.1rem',
-  },
   optionalBadge: {
-    marginLeft: '0.5rem',
-    fontSize: '0.75rem',
-    padding: '0.15rem 0.5rem',
-    backgroundColor: '#e8f4f8',
-    color: '#4a90a4',
+    marginLeft: 'auto',
+    fontSize: '0.7rem',
+    padding: '0.1rem 0.4rem',
+    backgroundColor: '#f0f0f0',
+    color: '#6c757d',
     borderRadius: '4px',
-    fontWeight: '500',
   },
   select: {
-    padding: '0.9rem 1rem',
-    borderRadius: '10px',
-    border: '2px solid #e0e0e0',
-    fontSize: '1rem',
+    padding: '0.75rem',
+    borderRadius: '8px',
+    border: '1px solid #e0e0e0',
+    fontSize: '0.9rem',
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
     backgroundColor: '#fff',
     outline: 'none',
-    fontFamily: 'inherit',
+    width: '100%',
   },
   selectDisabled: {
     backgroundColor: '#f8f9fa',
     cursor: 'not-allowed',
     opacity: 0.6,
   },
-  optgroup: {
-    fontWeight: '600',
-    color: '#2c3e50',
-  },
   readButton: {
     width: '100%',
-    padding: '1.1rem 2rem',
+    padding: '0.9rem',
     backgroundColor: '#2c3e50',
     color: '#fff',
     border: 'none',
-    borderRadius: '10px',
-    fontSize: '1.1rem',
-    fontWeight: '600',
+    borderRadius: '8px',
+    fontSize: '1rem',
+    fontWeight: '500',
     cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    outline: 'none',
+    transition: 'all 0.2s ease',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '0.75rem',
-    boxShadow: '0 4px 12px rgba(44,62,80,0.2)',
+    gap: '0.5rem',
   },
   readButtonDisabled: {
     backgroundColor: '#95a5a6',
     cursor: 'not-allowed',
-    boxShadow: 'none',
-  },
-  buttonSpinner: {
-    width: '16px',
-    height: '16px',
-    border: '2px solid rgba(255,255,255,0.3)',
-    borderTop: '2px solid #fff',
-    borderRadius: '50%',
-    animation: 'spin 0.8s linear infinite',
-    display: 'inline-block',
+    opacity: 0.7,
   },
   scriptureCard: {
+    // Removed flex: 1
     backgroundColor: '#fff',
-    borderRadius: '16px',
-    padding: '2.5rem',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-    border: '1px solid #e8e8e8',
-    minHeight: '300px',
+    borderRadius: '12px',
+    padding: '3rem',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+    border: '1px solid #f0f0f0',
+    minHeight: '400px',
   },
   errorBox: {
     color: '#c0392b',
-    padding: '1.25rem',
+    padding: '1rem',
     backgroundColor: '#fadbd8',
-    borderRadius: '10px',
-    border: '2px solid #e74c3c',
+    borderRadius: '8px',
     display: 'flex',
     alignItems: 'center',
     gap: '0.75rem',
-    fontSize: '1rem',
-  },
-  errorIcon: {
-    fontSize: '1.5rem',
+    fontSize: '0.9rem',
+    marginBottom: '1.5rem',
   },
   loadingBox: {
     textAlign: 'center',
     padding: '4rem 2rem',
-  },
-  spinner: {
-    width: '48px',
-    height: '48px',
-    border: '4px solid #f3f3f3',
-    borderTop: '4px solid #2c3e50',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite',
-    margin: '0 auto 1.5rem',
-  },
-  loadingText: {
     color: '#6c757d',
-    fontSize: '1.1rem',
-    margin: 0,
+  },
+  spin: {
+    animation: 'spin 1s linear infinite',
   },
   scriptureContent: {
-    padding: '0',
+    maxWidth: '700px',
+    margin: '0 auto',
   },
   reference: {
-    fontSize: '2rem',
+    fontSize: '1.75rem',
     fontWeight: '700',
     color: '#2c3e50',
     marginBottom: '2rem',
-    paddingBottom: '1rem',
-    borderBottom: '3px solid #d4af37',
     textAlign: 'center',
+    letterSpacing: '-0.5px',
   },
   versesContainer: {
     marginBottom: '2rem',
   },
   verseBlock: {
-    marginBottom: '1.5rem',
-    lineHeight: '1.9',
+    marginBottom: '0.5rem',
+    lineHeight: '1.8',
+    padding: '0.5rem',
+    borderRadius: '6px',
+    transition: 'background-color 0.2s ease',
+    cursor: 'pointer',
+  },
+  verseHighlighted: {
+    backgroundColor: '#fff9c4', // Light yellow highlight
   },
   verseNumber: {
-    fontWeight: '700',
-    color: '#d4af37',
+    fontWeight: '600',
+    color: '#95a5a6',
     marginRight: '0.75rem',
-    fontSize: '0.85rem',
+    fontSize: '0.75rem',
     verticalAlign: 'super',
+    userSelect: 'none',
   },
   verseText: {
-    fontSize: '1.15rem',
+    fontSize: '1.1rem',
     color: '#2c3e50',
-    lineHeight: '1.9',
     fontFamily: 'Georgia, serif',
   },
   translationInfo: {
-    marginTop: '2.5rem',
+    marginTop: '3rem',
     paddingTop: '1.5rem',
-    borderTop: '2px solid #f0f0f0',
-    fontSize: '0.95rem',
-    color: '#6c757d',
+    borderTop: '1px solid #f0f0f0',
+    fontSize: '0.85rem',
+    color: '#95a5a6',
     textAlign: 'center',
   },
   translationLabel: {
     fontWeight: '600',
-    color: '#495057',
+    color: '#6c757d',
   },
   emptyState: {
     textAlign: 'center',
     padding: '4rem 2rem',
+    color: '#95a5a6',
   },
   emptyStateIcon: {
-    fontSize: '5rem',
-    display: 'block',
-    marginBottom: '1.5rem',
-    opacity: 0.6,
+    marginBottom: '1rem',
+    opacity: 0.2,
   },
   emptyStateText: {
     color: '#2c3e50',
-    fontSize: '1.3rem',
-    margin: '0 0 0.5rem 0',
+    fontSize: '1.25rem',
     fontWeight: '500',
+    marginBottom: '0.5rem',
   },
   emptyStateSubtext: {
-    color: '#6c757d',
-    fontSize: '1rem',
-    margin: 0,
+    fontSize: '0.95rem',
   },
 };
+
+// Add keyframes for spin animation
+const styleSheet = document.createElement("style");
+styleSheet.innerText = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+document.head.appendChild(styleSheet);

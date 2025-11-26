@@ -6,17 +6,10 @@ export const Body = ({ currentView, setCurrentView, matches }) => {
   return (
     <div style={styles.body}>
       <div style={styles.mainContent}>
-        {currentView === 0 ? <CalendarView matches={matches} /> : <BibleView />}
+        {currentView === 0 ? <CalendarView matches={matches} /> : <BibleView matches={matches} />}
       </div>
 
       <nav style={styles.tabBar}>
-        <button
-          style={{ ...styles.tab, ...(currentView === 0 ? styles.tabActive : {}) }}
-          onClick={() => setCurrentView(0)}
-        >
-          <Calendar1Icon size={20} strokeWidth={2.5} />
-          <span>Calendar</span>
-        </button>
         <button
           style={{ ...styles.tab, ...(currentView === 1 ? styles.tabActive : {}) }}
           onClick={() => setCurrentView(1)}
@@ -24,6 +17,14 @@ export const Body = ({ currentView, setCurrentView, matches }) => {
           <BookOpen size={20} strokeWidth={2.5} />
           <span>Bible</span>
         </button>
+        <button
+          style={{ ...styles.tab, ...(currentView === 0 ? styles.tabActive : {}) }}
+          onClick={() => setCurrentView(0)}
+        >
+          <Calendar1Icon size={20} strokeWidth={2.5} />
+          <span>Calendar</span>
+        </button>
+
       </nav>
     </div>
   );
