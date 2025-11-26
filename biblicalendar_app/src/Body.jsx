@@ -1,4 +1,4 @@
-import BibleView  from "./Controllers/bible_controller/bible.controller";
+import BibleView from "./Controllers/bible_controller/bible.controller";
 import { CalendarView } from "./Views/calendar_view";
 import { BookOpen, Calendar1Icon } from 'lucide-react';
 
@@ -8,20 +8,20 @@ export const Body = ({ currentView, setCurrentView, matches }) => {
       <div style={styles.mainContent}>
         {currentView === 0 ? <CalendarView matches={matches} /> : <BibleView />}
       </div>
-      
+
       <nav style={styles.tabBar}>
-        <button 
-          style={{...styles.tab, ...(currentView === 0 ? styles.tabActive : {})}}
+        <button
+          style={{ ...styles.tab, ...(currentView === 0 ? styles.tabActive : {}) }}
           onClick={() => setCurrentView(0)}
         >
           <Calendar1Icon size={20} strokeWidth={2.5} />
           <span>Calendar</span>
         </button>
-        <button 
-          style={{...styles.tab, ...(currentView === 1 ? styles.tabActive : {})}}
+        <button
+          style={{ ...styles.tab, ...(currentView === 1 ? styles.tabActive : {}) }}
           onClick={() => setCurrentView(1)}
         >
-         <BookOpen size={20} strokeWidth={2.5} />
+          <BookOpen size={20} strokeWidth={2.5} />
           <span>Bible</span>
         </button>
       </nav>
@@ -30,9 +30,9 @@ export const Body = ({ currentView, setCurrentView, matches }) => {
 };
 
 const styles = {
-    app: {
+  app: {
     minHeight: '100vh',
-    backgroundColor: '#f5f5f0',
+    backgroundColor: '#f6f5f0',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   },
   body: {
