@@ -1,6 +1,10 @@
 // import {CalendarCheck} from 'lucide-react'
 
-export const Header = () => {
+import { HebDay } from "./Controllers/calendar_controllers/timedate.controller";
+
+export const Header = ({ matches }) => {
+
+
   return (
     <header style={styles.header}>
       <div style={styles.headerContent}>
@@ -8,7 +12,11 @@ export const Header = () => {
           {/* <CalendarCheck style={styles.logoIcon} /> */}
           <h1 style={styles.logoText}>
             BibliCalendar
-            </h1>
+          </h1>
+        </div>
+        {/* <HebTime/> */}
+        <div style={styles.hebday}>
+          {matches && <HebDay />}
         </div>
       </div>
     </header>
@@ -16,6 +24,22 @@ export const Header = () => {
 };
 
 const styles = {
+  hebday: {
+    position: 'fixed',
+    right: '1rem',
+    top: '1rem',
+    backgroundColor: '#fff',
+    padding: '0.5rem 1rem',
+    borderRadius: '8px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    fontSize: '1rem',
+    fontWeight: '500',
+    color: '#2c3e50',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    whiteSpace: 'nowrap',
+
+  },
   header: {
     position: 'fixed',
     top: 0,
@@ -25,6 +49,10 @@ const styles = {
     borderBottom: '3px solid #d4af37',
     zIndex: 1000,
     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    display: 'flex',
+    height: '4.5rem',
   },
   headerContent: {
     padding: '1rem 2rem',
@@ -46,5 +74,5 @@ const styles = {
     fontWeight: '300',
     letterSpacing: '0.5px',
     // height: '3rem'
-  },
+  }
 }

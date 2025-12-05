@@ -11,6 +11,7 @@ import {
   Loader2,
   Library
 } from 'lucide-react';
+import { HebTime, HebDay } from "../calendar_controllers/timedate.controller";
 
 export default function BibleView({ matches }) {
   const [selectedBook, setSelectedBook] = useState('');
@@ -236,6 +237,12 @@ export default function BibleView({ matches }) {
           </div>
         </div>
 
+        {!matches && (
+          <div style={{ padding: '0 1.5rem 1rem 1.5rem', borderBottom: '1px solid #f0f0f0' }}>
+            <HebDay />
+          </div>
+        )}
+
         <div style={styles.selectionBody}>
           {/* Translation Selector */}
           <div style={styles.translationSection}>
@@ -344,6 +351,11 @@ export default function BibleView({ matches }) {
         </div>
       </div>
 
+      {/* Hebrew Time Display */}
+      {/* <div style={styles.hebtime}>
+        <HebTime/>  
+      </div> */}
+
       {/* Scripture Display Card */}
       <div style={styles.scriptureCard}>
         {error && (
@@ -402,6 +414,9 @@ export default function BibleView({ matches }) {
 }
 
 const styles = {
+  hebtime: {
+    position: 'fixed',
+  },
   bibleContainer: {
     maxWidth: '1000px',
     margin: '0 auto',
@@ -525,6 +540,7 @@ const styles = {
   },
   selectionBody: {
     padding: '1.5rem',
+    // border: 'red solid 1px'
   },
   translationSection: {
     marginBottom: '1.5rem',
@@ -560,15 +576,19 @@ const styles = {
     borderColor: '#2c3e50',
   },
   selectionsGrid: {
+    boxSizing: 'border-box',
     display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
+    gap: '10px',
+    flexDirection: 'row',
     marginBottom: '1.5rem',
+    justifyContent: 'center',
+    // border: 'green solid 1px',
   },
   selectGroup: {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.5rem',
+    width: '25%',
   },
   selectLabel: {
     fontSize: '0.85rem',

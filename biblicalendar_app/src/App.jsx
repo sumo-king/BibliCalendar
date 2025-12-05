@@ -17,7 +17,7 @@ function App() {
 
   return (
     <div style={homePageStyles}>
-      <Header />
+      <Header matches={matches} />
       <Body currentView={currentView} setCurrentView={setCurrentView} matches={matches} />
     </div>
   );
