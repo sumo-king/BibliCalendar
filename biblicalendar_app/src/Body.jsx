@@ -1,12 +1,31 @@
+import { useState, useEffect } from 'react';
 import BibleView from "./Controllers/bible_controller/bible.controller";
 import { CalendarView } from "./Views/calendar_view";
 import { BookOpen, Calendar1Icon } from 'lucide-react';
 
 export const Body = ({ currentView, setCurrentView, matches, isDarkMode }) => {
+  const [scrollOpacity, setScrollOpacity] = useState(1);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrolled = window.scrollY;
+      const maxScroll = 300; // pixels to fade
+      const minOpacity = 0.1;
+      const newOpacity = Math.max(minOpacity, 1 - (scrolled / maxScroll) * (1 - minOpacity));
+      setScrollOpacity(newOpacity);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const themeStyles = {
     tabBar: {
-      backgroundColor: isDarkMode ? '#1a1a1a' : '#fff',
+      backgroundColor: isDarkMode
+        ? `rgba(26, 26, 26, ${scrollOpacity})`
+        : `rgba(255, 255, 255, ${scrollOpacity})`,
       borderTopColor: isDarkMode ? '#d4af37' : '#d4af37',
+      backdropFilter: 'blur(8px)',
     },
     tab: {
       backgroundColor: isDarkMode ? '#2c2c2c' : '#f8f9fa',
