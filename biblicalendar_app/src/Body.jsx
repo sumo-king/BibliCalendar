@@ -10,7 +10,7 @@ export const Body = ({ currentView, setCurrentView, matches, isDarkMode }) => {
     const handleScroll = () => {
       const scrolled = window.scrollY;
       const maxScroll = 300; // pixels to fade
-      const minOpacity = 0.1;
+      const minOpacity = 0.2;
       const newOpacity = Math.max(minOpacity, 1 - (scrolled / maxScroll) * (1 - minOpacity));
       setScrollOpacity(newOpacity);
     };

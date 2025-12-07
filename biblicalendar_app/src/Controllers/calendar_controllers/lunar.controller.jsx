@@ -148,7 +148,7 @@ const styles = {
     border: '1px solid #e0e0e0',
   },
   cardHeader: {
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    backgroundColor: '#2c3e50',
     padding: '1.25rem',
     borderBottom: '2px solid #d4af37',
   },
