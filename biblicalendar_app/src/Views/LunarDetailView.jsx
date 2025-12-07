@@ -20,27 +20,54 @@ export const LunarDetailView = ({ onBack, isDarkMode }) => {
         // Calculate reliable moon data
         const currentCalDate = new Date();
         const phase = Moon.lunarPhase(currentCalDate);
-        const illumination = Moon.lunarAge(currentCalDate);
         const age = Moon.lunarAge(currentCalDate);
-        const phaseEmoji = Moon.emojiForLunarPhase(phase);
-        const phaseName = Moon.lunarPhase(currentCalDate);
+        const agePercent = Moon.lunarAgePercent(currentCalDate); // 0.0 to 1.0
+        const phaseEmoji = Moon.lunarPhaseEmoji(currentCalDate); // Updated per documentation
+        const phaseName = Moon.lunarPhase(currentCalDate); // This returns string name
+
+        // Calculate illumination: New Moon (0/1) = 0%, Full Moon (0.5) = 100%
+        // Sine wave approximation or 1 - cos logic
+        // If agePercent is 0.5 (Full), we want 1.0. If 0 or 1, we want 0.0.
+        // Formula: (1 - Math.cos(agePercent * 2 * Math.PI)) / 2
+        const illuminationFraction = (1 - Math.cos(agePercent * 2 * Math.PI)) / 2;
+
+        // Distance in km (Earth Radii * 6371)
+        const distanceRadii = Moon.lunarDistance(currentCalDate);
+        const distanceKm = Math.round(distanceRadii * 6371);
 
         setCurrentDate(currentCalDate);
 
-        // Calculate upcoming phases for timeline
-        // const nextNew = Moon.lunarPhaseDate(currentCalDate, Moon.PHASE_NEW);
-        // const nextFull = Moon.lunarPhaseDate(currentDate, Moon.PHASE_FULL);
+        // Calculate upcoming phases dates
+        // Average lunar cycle is approximately 29.53 days
+        const LUNAR_CYCLE = 29.53;
+        const currentAge = Moon.lunarAge(currentCalDate);
+
+        // Days until next New Moon (Age 0/29.53)
+        const daysToNew = LUNAR_CYCLE - currentAge;
+        const nextNewDate = new Date(currentCalDate);
+        nextNewDate.setDate(currentCalDate.getDate() + daysToNew);
+
+        // Days until next Full Moon (Age ~14.765)
+        let daysToFull = 14.765 - currentAge;
+        if (daysToFull < 0) {
+            daysToFull += LUNAR_CYCLE;
+        }
+        const nextFullDate = new Date(currentCalDate);
+        nextFullDate.setDate(currentCalDate.getDate() + daysToFull);
+
+        const nextNew = nextNewDate;
+        const nextFull = nextFullDate;
 
         setMoonData({
-            phase,
+            phase: phaseName,
             phaseName,
-            illumination: (illumination * 100).toFixed(1),
+            illumination: (illuminationFraction * 100).toFixed(0),
             age: age.toFixed(1),
-            agePercent: (age / 29.53 * 100),
+            agePercent: (agePercent * 100),
             emoji: phaseEmoji,
-            distance: Math.floor(360000 + Math.random() * 40000), // Placeholder for actual distance calc if library doesn't support
-            // nextNew: nextNew ? nextNew.toLocaleDateString() : 'Calculating...',
-            // nextFull: nextFull ? nextFull.toLocaleDateString() : 'Calculating...',
+            distance: distanceKm,
+            nextNew: nextNew ? nextNew.toLocaleDateString() : 'Calculating...',
+            nextFull: nextFull ? nextFull.toLocaleDateString() : 'Calculating...',
             // zodiac: getMoonZodiac(age) // Simple approximation
         });
     }, []);
