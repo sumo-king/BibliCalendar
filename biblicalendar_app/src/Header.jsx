@@ -1,12 +1,11 @@
-// import {CalendarCheck} from 'lucide-react'
-
+import { Moon, Sun } from 'lucide-react';
 import { HebDay } from "./Controllers/calendar_controllers/timedate.controller";
 
-export const Header = ({ matches }) => {
+export const Header = ({ matches, isDarkMode, setIsDarkMode }) => {
 
 
   return (
-    <header style={styles.header}>
+    <header style={{ ...styles.header, backgroundColor: isDarkMode ? '#121212' : '#2c3e50', borderBottomColor: isDarkMode ? '#d4af37' : '#d4af37' }}>
       <div style={styles.headerContent}>
         <div style={styles.logoContainer}>
           {/* <CalendarCheck style={styles.logoIcon} /> */}
@@ -14,9 +13,20 @@ export const Header = ({ matches }) => {
             BibliCalendar
           </h1>
         </div>
-        {/* <HebTime/> */}
-        <div style={styles.hebday}>
-          {matches && <HebDay />}
+
+        <div style={styles.controls}>
+          {/* <HebTime/> */}
+          {matches && <div style={{ ...styles.hebday, backgroundColor: isDarkMode ? '#2c2c2c' : '#fff', color: isDarkMode ? '#e0e0e0' : '#2c3e50' }}>
+            <HebDay />
+          </div>}
+
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            style={{ ...styles.themeToggle, backgroundColor: isDarkMode ? '#2c2c2c' : '#fff', color: isDarkMode ? '#d4af37' : '#2c3e50' }}
+            aria-label="Toggle Dark Mode"
+          >
+            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
         </div>
       </div>
     </header>
@@ -24,10 +34,26 @@ export const Header = ({ matches }) => {
 };
 
 const styles = {
+  controls: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+    marginLeft: 'auto', // Pushes to the right
+  },
+  themeToggle: {
+    border: 'none',
+    borderRadius: '50%',
+    width: '40px',
+    height: '40px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    transition: 'all 0.3s ease',
+  },
   hebday: {
-    position: 'fixed',
-    right: '1rem',
-    top: '1rem',
+    // Removed fixed positioning to flow with flex layout
     backgroundColor: '#fff',
     padding: '0.5rem 1rem',
     borderRadius: '8px',
@@ -53,13 +79,19 @@ const styles = {
     alignItems: 'center',
     display: 'flex',
     height: '4.5rem',
+    transition: 'background-color 0.3s ease, border-color 0.3s ease',
   },
   headerContent: {
     padding: '1rem 2rem',
     maxWidth: '1400px',
     margin: '0 auto',
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   logoContainer: {
+    paddingLeft: '2.5rem',
     display: 'flex',
     alignItems: 'center',
     gap: '0.75rem',

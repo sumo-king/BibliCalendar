@@ -1,43 +1,67 @@
 import { useEffect, useState } from "react";
 import { Moon } from 'lunarphase-js';
 
-export const LunarCal = () => {
+export const LunarCal = ({ isDarkMode }) => {
   const [lunarDate, setLunarDate] = useState({
-    phase: '', 
-    day: null, 
-    phaseEmoji: null, 
+    phase: '',
+    day: null,
+    phaseEmoji: null,
     rawDay: null,
     month: null
   });
 
-
+  const themeStyles = {
+    card: {
+      backgroundColor: isDarkMode ? '#2c2c2c' : '#fff',
+      borderColor: isDarkMode ? '#444' : '#e0e0e0',
+    },
+    title: {
+      color: '#fff', // Gradient header remains, text is white
+    },
+    body: {
+      color: isDarkMode ? '#e0e0e0' : '#2c3e50',
+    },
+    displayBox: {
+      backgroundColor: isDarkMode ? '#1a1a1a' : '#f8f9fa',
+      color: isDarkMode ? '#e0e0e0' : '#495057',
+    },
+    label: {
+      color: isDarkMode ? '#aaa' : '#6c757d',
+    },
+    value: {
+      color: isDarkMode ? '#fff' : '#2c3e50',
+    },
+    row: {
+      borderBottomColor: isDarkMode ? '#444' : '#e9ecef',
+    }
+  };
 
   useEffect(() => {
     const currentDate = new Date();
     const moonPhase = Moon.lunarPhase(currentDate);
     const moonDay = Moon.lunarAge();
     const phaseEmoji = Moon.emojiForLunarPhase(moonPhase);
-    
+
     const calculateLunarMonth = (date) => {
       const year = date.getFullYear();
       const springEquinox = new Date(year, 2, 20);
-      const equinoxDate = date < springEquinox 
+      const equinoxDate = date < springEquinox
         ? new Date(year - 1, 2, 20)
         : springEquinox;
-      
+
       const daysSinceEquinox = (date - equinoxDate) / (1000 * 60 * 60 * 24);
       const lunarCycleLength = 29.53;
       const lunarMonth = Math.floor(daysSinceEquinox / lunarCycleLength) + 1;
-      
+
       return lunarMonth;
     };
 
     const lunarMonth = calculateLunarMonth(currentDate);
 
     setLunarDate({
-      phase: moonPhase, 
-      day: Math.floor(moonDay), 
-      phaseEmoji: phaseEmoji, 
+      phase: moonPhase,
+      day: Math.floor(moonDay),
+      phaseEmoji: phaseEmoji,
       rawDay: moonDay,
       month: lunarMonth
     });
@@ -50,55 +74,55 @@ export const LunarCal = () => {
     return day;
   };
 
-  const weeklySabbathAlert = ()=>{
+  const weeklySabbathAlert = () => {
     const sabbathDays = [8, 15, 22, 29];
     const moonDay = Math.floor(Moon.lunarAge());
     const isTodaySabbath = sabbathDays.includes(moonDay);
-    const isSabbathClose = sabbathDays.some(sabbathDay => Math.abs(sabbathDay - moonDay) <=2 && sabbathDay > moonDay);
+    const isSabbathClose = sabbathDays.some(sabbathDay => Math.abs(sabbathDay - moonDay) <= 2 && sabbathDay > moonDay);
 
-    if(isSabbathClose && !isTodaySabbath){
-      return("Reminder: A Sabbath day is approaching soon in the lunar calendar.");
+    if (isSabbathClose && !isTodaySabbath) {
+      return ("Reminder: A Sabbath day is approaching soon in the lunar calendar.");
     } else
-    if(isTodaySabbath){
-      return("Reminder: Today is a Sabbath day according to the lunar calendar.");
-    } else{
-      return("");
-    }
+      if (isTodaySabbath) {
+        return ("Reminder: Today is a Sabbath day according to the lunar calendar.");
+      } else {
+        return ("");
+      }
   }
 
 
   return (
-    <div style={styles.card}>
+    <div style={{ ...styles.card, ...themeStyles.card }}>
       <div style={styles.cardHeader}>
         <h3 style={styles.cardTitle}>Lunar Calendar</h3>
       </div>
       <div style={styles.cardBody}>
-        <div style={styles.moonPhaseDisplay}>
+        <div style={{ ...styles.moonPhaseDisplay, ...themeStyles.displayBox }}>
           <div style={styles.moonEmoji}>{lunarDate.phaseEmoji}</div>
-          <div style={styles.moonPhaseName}>{lunarDate.phase}</div>
+          <div style={{ ...styles.moonPhaseName, color: themeStyles.displayBox.color }}>{lunarDate.phase}</div>
         </div>
-        
-        
-        <div style={styles.dataRow}>
+
+
+        <div style={{ ...styles.dataRow, ...themeStyles.row }}>
           {/* <span style={styles.dataLabel}>Alert</span> */}
-          <span style={styles.dataValue}>{weeklySabbathAlert()}</span>
+          <span style={{ ...styles.dataValue, color: isDarkMode ? '#d4af37' : '#2c3e50' }}>{weeklySabbathAlert()}</span>
         </div>
 
-        <div style={styles.dataRow}>
-          <span style={styles.dataLabel}>Month</span>
-          <span style={styles.dataValue}>{lunarDate.month || '—'}</span>
+        <div style={{ ...styles.dataRow, ...themeStyles.row }}>
+          <span style={{ ...styles.dataLabel, ...themeStyles.label }}>Month</span>
+          <span style={{ ...styles.dataValue, ...themeStyles.value }}>{lunarDate.month || '—'}</span>
         </div>
 
-        <div style={styles.dataRow}>
-          <span style={styles.dataLabel}>Day</span>
-          <span style={{...styles.dataValue, ...(typeof isSabbath(lunarDate.day) === 'string' ? styles.sabbathHighlight : {})}}>
+        <div style={{ ...styles.dataRow, ...themeStyles.row }}>
+          <span style={{ ...styles.dataLabel, ...themeStyles.label }}>Day</span>
+          <span style={{ ...styles.dataValue, ...themeStyles.value, ...(typeof isSabbath(lunarDate.day) === 'string' ? styles.sabbathHighlight : {}) }}>
             {isSabbath(lunarDate.day)}
           </span>
         </div>
-        
-        <div style={styles.dataRow}>
-          <span style={styles.dataLabel}>Precise Day</span>
-          <span style={styles.dataValueSmall}>{lunarDate.rawDay?.toFixed(1) || '—'}</span>
+
+        <div style={{ ...styles.dataRow, ...themeStyles.row }}>
+          <span style={{ ...styles.dataLabel, ...themeStyles.label }}>Precise Day</span>
+          <span style={{ ...styles.dataValueSmall, color: isDarkMode ? '#888' : '#495057' }}>{lunarDate.rawDay?.toFixed(1) || '—'}</span>
         </div>
       </div>
     </div>
@@ -106,7 +130,7 @@ export const LunarCal = () => {
 };
 
 const styles = {
-    cardGrid: {
+  cardGrid: {
     display: 'flex',
     gap: '1.5rem',
     justifyContent: 'center',

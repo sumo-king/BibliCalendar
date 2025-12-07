@@ -2,23 +2,51 @@ import BibleView from "./Controllers/bible_controller/bible.controller";
 import { CalendarView } from "./Views/calendar_view";
 import { BookOpen, Calendar1Icon } from 'lucide-react';
 
-export const Body = ({ currentView, setCurrentView, matches }) => {
+export const Body = ({ currentView, setCurrentView, matches, isDarkMode }) => {
+  const themeStyles = {
+    tabBar: {
+      backgroundColor: isDarkMode ? '#1a1a1a' : '#fff',
+      borderTopColor: isDarkMode ? '#d4af37' : '#d4af37',
+    },
+    tab: {
+      backgroundColor: isDarkMode ? '#2c2c2c' : '#f8f9fa',
+      color: isDarkMode ? '#e0e0e0' : '#495057',
+      borderColor: isDarkMode ? '#444' : '#e0e0e0',
+    },
+    tabActive: {
+      backgroundColor: isDarkMode ? '#d4af37' : '#2c3e50',
+      color: isDarkMode ? '#1a1a1a' : '#fff',
+      borderColor: isDarkMode ? '#d4af37' : '#2c3e50',
+    }
+  };
+
   return (
     <div style={styles.body}>
       <div style={styles.mainContent}>
-        {currentView === 0 ? <CalendarView matches={matches} /> : <BibleView matches={matches} />}
+        {currentView === 0 ?
+          <CalendarView matches={matches} isDarkMode={isDarkMode} /> :
+          <BibleView matches={matches} isDarkMode={isDarkMode} />
+        }
       </div>
 
-      <nav style={styles.tabBar}>
+      <nav style={{ ...styles.tabBar, ...themeStyles.tabBar }}>
         <button
-          style={{ ...styles.tab, ...(currentView === 1 ? styles.tabActive : {}) }}
+          style={{
+            ...styles.tab,
+            ...themeStyles.tab,
+            ...(currentView === 1 ? { ...styles.tabActive, ...themeStyles.tabActive } : {})
+          }}
           onClick={() => setCurrentView(1)}
         >
           <BookOpen size={20} strokeWidth={2.5} />
           <span>Bible</span>
         </button>
         <button
-          style={{ ...styles.tab, ...(currentView === 0 ? styles.tabActive : {}) }}
+          style={{
+            ...styles.tab,
+            ...themeStyles.tab,
+            ...(currentView === 0 ? { ...styles.tabActive, ...themeStyles.tabActive } : {})
+          }}
           onClick={() => setCurrentView(0)}
         >
           <Calendar1Icon size={20} strokeWidth={2.5} />
@@ -33,7 +61,7 @@ export const Body = ({ currentView, setCurrentView, matches }) => {
 const styles = {
   app: {
     minHeight: '100vh',
-    backgroundColor: '#f6f5f0',
+    backgroundColor: '#f6f5f0', // This is overridden by App.jsx
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   },
   body: {
@@ -83,6 +111,7 @@ const styles = {
     borderTop: '2px solid #d4af37',
     boxShadow: '0 -2px 12px rgba(0,0,0,0.1)',
     zIndex: 1000,
+    transition: 'background-color 0.3s ease, border-color 0.3s ease',
   },
 
 }

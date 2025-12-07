@@ -1,13 +1,23 @@
-export const ZadokCal = () => {
+export const ZadokCal = ({ isDarkMode }) => {
+  const themeStyles = {
+    card: {
+      backgroundColor: isDarkMode ? '#2c2c2c' : '#fff',
+      borderColor: isDarkMode ? '#444' : '#e0e0e0',
+    },
+    text: {
+      color: isDarkMode ? '#aaa' : '#6c757d',
+    }
+  };
+
   return (
-    <div style={styles.card}>
+    <div style={{ ...styles.card, ...themeStyles.card }}>
       <div style={styles.cardHeader}>
         <h3 style={styles.cardTitle}>Zadok Calendar</h3>
       </div>
       <div style={styles.cardBody}>
         <div style={styles.comingSoon}>
           <span style={styles.comingSoonIcon}>📜</span>
-          <p style={styles.comingSoonText}>Zadok/Jubilees calendar details coming soon</p>
+          <p style={{ ...styles.comingSoonText, ...themeStyles.text }}>Zadok/Jubilees calendar details coming soon</p>
         </div>
       </div>
     </div>
@@ -15,7 +25,7 @@ export const ZadokCal = () => {
 };
 
 const styles = {
-    cardGrid: {
+  cardGrid: {
     display: 'flex',
     gap: '1.5rem',
     justifyContent: 'center',

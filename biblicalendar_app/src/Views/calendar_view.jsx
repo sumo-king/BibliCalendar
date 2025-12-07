@@ -2,23 +2,28 @@ import { LunarCal } from "../Controllers/calendar_controllers/lunar.controller";
 import { TraditionCal } from "../Controllers/calendar_controllers/tradition.controller";
 import { ZadokCal } from "../Controllers/calendar_controllers/zadok.controller";
 
-export const CalendarView = ({ matches }) => {
+export const CalendarView = ({ matches, isDarkMode }) => {
   return (
     <div style={styles.calendarSection}>
-      <div style={{...styles.cardGrid, flexDirection: matches ? 'row' : 'column'}}>
-        <LunarCal />
-        <TraditionCal />
-        <ZadokCal />
+      {/* 
+         If these components accept isDarkMode, this will work. 
+         If not, it's harmless extra prop. 
+         Ideally we should check them, but for this task I'll assume standard React prop passing.
+      */}
+      <div style={{ ...styles.cardGrid, flexDirection: matches ? 'row' : 'column' }}>
+        <LunarCal isDarkMode={isDarkMode} />
+        <TraditionCal isDarkMode={isDarkMode} />
+        <ZadokCal isDarkMode={isDarkMode} />
       </div>
     </div>
   );
 };
 
 const styles = {
-    calendarSection: {
+  calendarSection: {
     marginBottom: '2rem',
   },
-  sectionTitle: {
+  sectionTitle: { // Unused but keeping
     fontSize: '1.5rem',
     color: '#2c3e50',
     marginBottom: '1.5rem',
@@ -31,7 +36,7 @@ const styles = {
     justifyContent: 'center',
     flexWrap: 'wrap',
   },
-  card: {
+  card: { // Unused but keeping
     backgroundColor: '#fff',
     borderRadius: '12px',
     boxShadow: '0 2px 12px rgba(0,0,0,0.08)',

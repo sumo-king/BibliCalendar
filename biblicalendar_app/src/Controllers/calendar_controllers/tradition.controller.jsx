@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { HDate } from '@hebcal/core';
 
-export const TraditionCal = () => {
+export const TraditionCal = ({ isDarkMode }) => {
   const [tradDate, setTradDate] = useState({
     day: '',
     month: '',
@@ -13,11 +13,37 @@ export const TraditionCal = () => {
     parsha: ''
   });
 
+  const themeStyles = {
+    card: {
+      backgroundColor: isDarkMode ? '#2c2c2c' : '#fff',
+      borderColor: isDarkMode ? '#444' : '#e0e0e0',
+    },
+    displayBox: {
+      backgroundColor: isDarkMode ? '#1a1a1a' : '#f8f9fa',
+      borderColor: isDarkMode ? '#444' : '#667eea', // Maybe simplify border in dark mode
+    },
+    dateText: {
+      color: isDarkMode ? '#fff' : '#2c3e50',
+    },
+    subText: {
+      color: isDarkMode ? '#aaa' : '#6c757d',
+    },
+    label: {
+      color: isDarkMode ? '#aaa' : '#6c757d',
+    },
+    value: {
+      color: isDarkMode ? '#fff' : '#2c3e50',
+    },
+    row: {
+      borderBottomColor: isDarkMode ? '#444' : '#e9ecef',
+    }
+  };
+
   useEffect(() => {
     const hd = new HDate();
 
-    console.log("Error CHECKING",hd.getMonthName() )
-    
+    // console.log("Error CHECKING",hd.getMonthName() )
+
     setTradDate({
       day: hd.getDate(),
       month: hd.getMonth(),
@@ -31,32 +57,32 @@ export const TraditionCal = () => {
   }, []);
 
   return (
-    <div style={styles.card}>
+    <div style={{ ...styles.card, ...themeStyles.card }}>
       <div style={styles.cardHeader}>
         <h3 style={styles.cardTitle}>Traditional Calendar</h3>
       </div>
       <div style={styles.cardBody}>
-        <div style={styles.hebrewDateDisplay}>
-          <div style={styles.hebrewDateText}>{tradDate.hebrewDate}</div>
-          <div style={styles.dayOfWeekText}>{tradDate.dayOfWeek}</div>
+        <div style={{ ...styles.hebrewDateDisplay, ...themeStyles.displayBox }}>
+          <div style={{ ...styles.hebrewDateText, ...themeStyles.dateText }}>{tradDate.hebrewDate}</div>
+          <div style={{ ...styles.dayOfWeekText, ...themeStyles.subText }}>{tradDate.dayOfWeek}</div>
           {tradDate.isShabbat && (
             <div style={styles.shabbatBadge}>🕯️ Shabbat</div>
           )}
         </div>
 
-        <div style={styles.dataRow}>
-          <span style={styles.dataLabel}>Hebrew Year</span>
-          <span style={styles.dataValue}>{tradDate.year}</span>
+        <div style={{ ...styles.dataRow, ...themeStyles.row }}>
+          <span style={{ ...styles.dataLabel, ...themeStyles.label }}>Hebrew Year</span>
+          <span style={{ ...styles.dataValue, ...themeStyles.value }}>{tradDate.year}</span>
         </div>
 
-        <div style={styles.dataRow}>
-          <span style={styles.dataLabel}>Month</span>
-          <span style={styles.dataValue}>{tradDate.monthName} ({tradDate.month})</span>
+        <div style={{ ...styles.dataRow, ...themeStyles.row }}>
+          <span style={{ ...styles.dataLabel, ...themeStyles.label }}>Month</span>
+          <span style={{ ...styles.dataValue, ...themeStyles.value }}>{tradDate.monthName} ({tradDate.month})</span>
         </div>
 
-        <div style={styles.dataRow}>
-          <span style={styles.dataLabel}>Day</span>
-          <span style={styles.dataValue}>{tradDate.day}</span>
+        <div style={{ ...styles.dataRow, ...themeStyles.row }}>
+          <span style={{ ...styles.dataLabel, ...themeStyles.label }}>Day</span>
+          <span style={{ ...styles.dataValue, ...themeStyles.value }}>{tradDate.day}</span>
         </div>
       </div>
     </div>

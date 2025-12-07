@@ -11,9 +11,9 @@ import {
   Loader2,
   Library
 } from 'lucide-react';
-import { HebTime, HebDay } from "../calendar_controllers/timedate.controller";
+import { HebDay } from "../calendar_controllers/timedate.controller";
 
-export default function BibleView({ matches }) {
+export default function BibleView({ matches, isDarkMode }) {
   const [selectedBook, setSelectedBook] = useState('');
   const [selectedChapter, setSelectedChapter] = useState('');
   const [selectedVerse, setSelectedVerse] = useState('');
@@ -23,6 +23,55 @@ export default function BibleView({ matches }) {
   const [translation, setTranslation] = useState('web');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [highlightedVerses, setHighlightedVerses] = useState(new Set());
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const themeStyles = {
+    container: {
+      color: isDarkMode ? '#e0e0e0' : 'inherit',
+    },
+    card: {
+      backgroundColor: isDarkMode ? '#2c2c2c' : '#fff',
+      borderColor: isDarkMode ? '#444' : '#f0f0f0',
+      color: isDarkMode ? '#e0e0e0' : 'inherit',
+    },
+    text: {
+      color: isDarkMode ? '#e0e0e0' : '#2c3e50',
+    },
+    subText: {
+      color: isDarkMode ? '#aaa' : '#6c757d',
+    },
+    input: {
+      backgroundColor: isDarkMode ? '#333' : '#fff',
+      borderColor: isDarkMode ? '#444' : '#e0e0e0',
+      color: isDarkMode ? '#fff' : '#495057',
+    },
+    button: {
+      backgroundColor: isDarkMode ? '#333' : '#fff',
+      borderColor: isDarkMode ? '#444' : '#e0e0e0',
+      color: isDarkMode ? '#e0e0e0' : '#495057',
+    },
+    buttonActive: {
+      backgroundColor: isDarkMode ? '#d4af37' : '#2c3e50',
+      color: isDarkMode ? '#1a1a1a' : '#fff',
+      borderColor: isDarkMode ? '#d4af37' : '#2c3e50',
+    },
+    verseText: {
+      color: isDarkMode ? '#e0e0e0' : '#2c3e50',
+    },
+    verseNumber: {
+      color: isDarkMode ? '#888' : '#95a5a6',
+    },
+    highlight: {
+      backgroundColor: isDarkMode ? 'rgba(212, 175, 55, 0.2)' : '#fff9c4',
+    },
+    icon: {
+      color: isDarkMode ? '#d4af37' : '#2c3e50',
+    },
+    menuToggle: {
+      backgroundColor: isDarkMode ? '#d4af37' : '#2c3e50',
+      color: isDarkMode ? '#1a1a1a' : '#fff',
+    }
+  };
 
   const bibleBooks = {
     'Old Testament': [
@@ -70,19 +119,18 @@ export default function BibleView({ matches }) {
     { id: 'clementine', name: 'Vulgate' }
   ];
 
-  const fetchBibleText = async () => {
-    if (!selectedBook || !selectedChapter) {
-      setError('Please select a book and chapter');
-      return;
-    }
+  // Flatten books list for searching
+  const allBooks = [...bibleBooks['Old Testament'], ...bibleBooks['New Testament']];
+
+  const fetchScripture = async (book, chapter, verse = '') => {
     setLoading(true);
     setError(null);
-    setHighlightedVerses(new Set()); // Reset highlights on new fetch
+    setHighlightedVerses(new Set());
 
     try {
-      let query = `${selectedBook} ${selectedChapter}`;
-      if (selectedVerse) {
-        query += `:${selectedVerse}`;
+      let query = `${book} ${chapter}`;
+      if (verse) {
+        query += `:${verse}`;
       }
       const url = `https://bible-api.com/${encodeURIComponent(query)}?translation=${translation}`;
       const response = await fetch(url);
@@ -93,12 +141,74 @@ export default function BibleView({ matches }) {
 
       const data = await response.json();
       setBibleData(data);
-      if (!matches) setIsSidebarOpen(false); // Close sidebar on mobile after fetch
+      if (!matches) setIsSidebarOpen(false);
     } catch (err) {
       setError(err.message);
       setBibleData(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBibleText = async () => {
+    if (!selectedBook || !selectedChapter) {
+      setError('Please select a book and chapter');
+      return;
+    }
+    await fetchScripture(selectedBook, selectedChapter, selectedVerse);
+  };
+
+  const handleSearch = async (e) => {
+    if (e.key === 'Enter' || e.type === 'click') {
+      const query = searchQuery.trim();
+      if (!query) return;
+
+      // Clean up query
+      const cleanQuery = query.replace(/\s+/g, ' ');
+
+      // Find matching book
+      // We sort books by length descending to match "1 John" before "John"
+      const sortedBooks = allBooks.sort((a, b) => b.length - a.length);
+      const matchedBook = sortedBooks.find(book =>
+        cleanQuery.toLowerCase().startsWith(book.toLowerCase())
+      );
+
+      if (!matchedBook) {
+        setError('Book not found. Please check spelling.');
+        return;
+      }
+
+      // Extract remainder
+      const remainder = cleanQuery.slice(matchedBook.length).trim();
+
+      if (!remainder) {
+        // Book only
+        setSelectedBook(matchedBook);
+        setError(`Please select a chapter for ${matchedBook}`);
+        return;
+      }
+
+      // Try to parse Chapter:Verse or Chapter
+      // Formats: "1", "1:1", "1 1"
+      const parts = remainder.split(/[:\s]/);
+      const chapter = parts[0];
+      const verse = parts.length > 1 ? parts[1] : '';
+
+      if (!chapter || isNaN(chapter)) {
+        // Maybe they typed "Genesis Chapter 1" - advanced parsing not requested but good to be safe
+        // For now assume "Book Chapter..."
+        setSelectedBook(matchedBook);
+        setError(`Invalid chapter: ${chapter}`);
+        return;
+      }
+
+      // Update state
+      setSelectedBook(matchedBook);
+      setSelectedChapter(chapter);
+      setSelectedVerse(verse);
+
+      // Fetch immediately
+      await fetchScripture(matchedBook, chapter, verse);
     }
   };
 
@@ -134,25 +244,7 @@ export default function BibleView({ matches }) {
     setSelectedVerse('');
     setHighlightedVerses(new Set()); // Reset highlights
 
-    try {
-      setLoading(true);
-      setError(null);
-      const query = `${selectedBook} ${newChapter}`;
-      const url = `https://bible-api.com/${encodeURIComponent(query)}?translation=${translation}`;
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch Bible text');
-      }
-
-      const data = await response.json();
-      setBibleData(data);
-    } catch (err) {
-      setError(err.message);
-      setBibleData(null);
-    } finally {
-      setLoading(false);
-    }
+    await fetchScripture(selectedBook, String(newChapter), '');
   };
 
   const toggleHighlight = (index) => {
@@ -170,7 +262,7 @@ export default function BibleView({ matches }) {
       {/* Mobile Menu Toggle - Only show on mobile (!matches) */}
       {!matches && (
         <button
-          style={styles.menuToggle}
+          style={{ ...styles.menuToggle, ...themeStyles.menuToggle }}
           onClick={() => setIsSidebarOpen(true)}
           aria-label="Open menu"
         >
@@ -190,6 +282,7 @@ export default function BibleView({ matches }) {
             style={{
               ...styles.navigationArrow,
               ...styles.arrowLeft,
+              ...themeStyles.button,
               ...(Number(selectedChapter) <= 1 ? styles.arrowDisabled : {})
             }}
             onClick={() => navigateChapter('prev')}
@@ -203,6 +296,7 @@ export default function BibleView({ matches }) {
             style={{
               ...styles.navigationArrow,
               ...styles.arrowRight,
+              ...themeStyles.button,
               ...(Number(selectedChapter) >= chapterCounts[selectedBook] ? styles.arrowDisabled : {})
             }}
             onClick={() => navigateChapter('next')}
@@ -217,6 +311,7 @@ export default function BibleView({ matches }) {
       {/* Scripture Selection Card / Sidebar */}
       <div style={{
         ...styles.selectionCard,
+        ...themeStyles.card,
         ...(!matches ? styles.mobileSidebar : {}),
         ...(!matches && isSidebarOpen ? styles.mobileSidebarOpen : {})
       }}>
@@ -229,21 +324,43 @@ export default function BibleView({ matches }) {
           </button>
         )}
 
-        <div style={styles.cardHeader}>
-          <Book size={28} style={styles.headerIcon} />
+        <div style={{ ...styles.cardHeader, borderBottomColor: isDarkMode ? '#444' : '#f0f0f0' }}>
+          <Book size={28} style={{ ...styles.headerIcon, ...themeStyles.icon }} />
           <div>
-            <h2 style={styles.cardHeading}>Scripture</h2>
-            <p style={styles.cardSubheading}>Select passage</p>
+            <h2 style={{ ...styles.cardHeading, ...themeStyles.text }}>Scripture</h2>
+            <p style={{ ...styles.cardSubheading, ...themeStyles.subText }}>Select passage</p>
           </div>
         </div>
 
         {!matches && (
-          <div style={{ padding: '0 1.5rem 1rem 1.5rem', borderBottom: '1px solid #f0f0f0' }}>
+          <div style={{ padding: '0 1.5rem 1rem 1.5rem', borderBottom: isDarkMode ? '1px solid #444' : '1px solid #f0f0f0' }}>
             <HebDay />
           </div>
         )}
 
         <div style={styles.selectionBody}>
+          {/* Search bar */}
+          <div style={styles.searchSection}>
+            <button
+              type="button"
+              onClick={handleSearch}
+              style={{
+                ...styles.searchButton,
+                backgroundColor: isDarkMode ? '#d4af37' : '#2c3e50',
+                color: isDarkMode ? '#1a1a1a' : '#fff'
+              }}
+            >
+              Search
+            </button>
+            <input
+              type="text"
+              placeholder="Search (e.g. John 3:16)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearch}
+              style={{ ...styles.searchInput, ...themeStyles.input }}
+            />
+          </div>
           {/* Translation Selector */}
           <div style={styles.translationSection}>
             <label style={styles.sectionLabel}>Translation</label>
@@ -253,7 +370,8 @@ export default function BibleView({ matches }) {
                   key={trans.id}
                   style={{
                     ...styles.translationButton,
-                    ...(translation === trans.id ? styles.translationButtonActive : {})
+                    ...themeStyles.button,
+                    ...(translation === trans.id ? { ...styles.translationButtonActive, ...themeStyles.buttonActive } : {})
                   }}
                   onClick={() => setTranslation(trans.id)}
                 >
@@ -266,18 +384,18 @@ export default function BibleView({ matches }) {
           {/* Book, Chapter, Verse Selection */}
           <div style={styles.selectionsGrid}>
             <div style={styles.selectGroup}>
-              <label style={styles.selectLabel}>
+              <label style={{ ...styles.selectLabel, color: isDarkMode ? '#aaa' : '#2c3e50' }}>
                 <Library size={16} />
                 Book
               </label>
               <select
-                style={styles.select}
+                style={{ ...styles.select, ...themeStyles.input }}
                 value={selectedBook}
                 onChange={handleBookChange}
               >
                 <option value="">Choose...</option>
                 {Object.entries(bibleBooks).map(([testament, books]) => (
-                  <optgroup key={testament} label={testament} style={styles.optgroup}>
+                  <optgroup key={testament} label={testament} style={{ ...styles.optgroup, color: isDarkMode ? '#333' : 'inherit' }}>
                     {books.map(book => (
                       <option key={book} value={book}>
                         {book}
@@ -289,12 +407,16 @@ export default function BibleView({ matches }) {
             </div>
 
             <div style={styles.selectGroup}>
-              <label style={styles.selectLabel}>
+              <label style={{ ...styles.selectLabel, color: isDarkMode ? '#aaa' : '#2c3e50' }}>
                 <FileText size={16} />
                 Chapter
               </label>
               <select
-                style={{ ...styles.select, ...((!selectedBook) ? styles.selectDisabled : {}) }}
+                style={{
+                  ...styles.select,
+                  ...themeStyles.input,
+                  ...((!selectedBook) ? styles.selectDisabled : {})
+                }}
                 value={selectedChapter}
                 onChange={handleChapterChange}
                 disabled={!selectedBook}
@@ -312,13 +434,13 @@ export default function BibleView({ matches }) {
             </div>
 
             <div style={styles.selectGroup}>
-              <label style={styles.selectLabel}>
+              <label style={{ ...styles.selectLabel, color: isDarkMode ? '#aaa' : '#2c3e50' }}>
                 <Sparkles size={16} />
-                Verse <span style={styles.optionalBadge}>Opt</span>
+                Verse <span style={{ ...styles.optionalBadge, backgroundColor: isDarkMode ? '#444' : '#f0f0f0', color: isDarkMode ? '#aaa' : '#6c757d' }}>Opt</span>
               </label>
               <input
                 type="number"
-                style={{ ...styles.select, ...((!selectedChapter) ? styles.selectDisabled : {}) }}
+                style={{ ...styles.select, ...themeStyles.input, ...((!selectedChapter) ? styles.selectDisabled : {}) }}
                 value={selectedVerse}
                 onChange={(e) => setSelectedVerse(e.target.value)}
                 placeholder="All"
@@ -331,6 +453,8 @@ export default function BibleView({ matches }) {
           <button
             style={{
               ...styles.readButton,
+              backgroundColor: isDarkMode ? '#d4af37' : '#2c3e50',
+              color: isDarkMode ? '#1a1a1a' : '#fff',
               ...((!selectedBook || !selectedChapter || loading) ? styles.readButtonDisabled : {})
             }}
             onClick={fetchBibleText}
@@ -357,7 +481,7 @@ export default function BibleView({ matches }) {
       </div> */}
 
       {/* Scripture Display Card */}
-      <div style={styles.scriptureCard}>
+      <div style={{ ...styles.scriptureCard, ...themeStyles.card }}>
         {error && (
           <div style={styles.errorBox}>
             <AlertTriangle size={24} />
@@ -374,7 +498,7 @@ export default function BibleView({ matches }) {
 
         {bibleData && !loading && (
           <div style={styles.scriptureContent}>
-            <h3 style={styles.reference}>{bibleData.reference}</h3>
+            <h3 style={{ ...styles.reference, ...themeStyles.text }}>{bibleData.reference}</h3>
 
             <div style={styles.versesContainer}>
               {bibleData.verses.map((verse, index) => (
@@ -382,18 +506,18 @@ export default function BibleView({ matches }) {
                   key={index}
                   style={{
                     ...styles.verseBlock,
-                    ...(highlightedVerses.has(index) ? styles.verseHighlighted : {})
+                    ...(highlightedVerses.has(index) ? themeStyles.highlight : {})
                   }}
                   onClick={() => toggleHighlight(index)}
                 >
-                  <span style={styles.verseNumber}>{verse.verse}</span>
-                  <span style={styles.verseText}>{verse.text}</span>
+                  <span style={{ ...styles.verseNumber, ...themeStyles.verseNumber }}>{verse.verse}</span>
+                  <span style={{ ...styles.verseText, ...themeStyles.verseText }}>{verse.text}</span>
                 </div>
               ))}
             </div>
 
             {bibleData.translation_name && (
-              <div style={styles.translationInfo}>
+              <div style={{ ...styles.translationInfo, borderTopColor: isDarkMode ? '#444' : '#f0f0f0' }}>
                 <span style={styles.translationLabel}>Translation:</span> {bibleData.translation_name}
                 {bibleData.translation_note && ` — ${bibleData.translation_note}`}
               </div>
@@ -403,9 +527,9 @@ export default function BibleView({ matches }) {
 
         {!bibleData && !loading && !error && (
           <div style={styles.emptyState}>
-            <Book size={64} style={styles.emptyStateIcon} />
-            <p style={styles.emptyStateText}>Select a passage</p>
-            <p style={styles.emptyStateSubtext}>Choose a book and chapter to begin</p>
+            <Book size={64} style={{ ...styles.emptyStateIcon, color: isDarkMode ? '#444' : 'inherit' }} />
+            <p style={{ ...styles.emptyStateText, ...themeStyles.text }}>Select a passage</p>
+            <p style={{ ...styles.emptyStateSubtext, ...themeStyles.subText }}>Choose a book and chapter to begin</p>
           </div>
         )}
       </div>
@@ -450,6 +574,15 @@ const styles = {
     backgroundColor: 'rgba(0,0,0,0.5)',
     zIndex: 998,
     backdropFilter: 'blur(2px)',
+  },
+  searchButton: {
+    backgroundColor: '#2c3e50',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '50px',
+    padding: '0.5rem 1rem',
+    cursor: 'pointer',
+    transition: 'all 0.3s',
   },
   mobileSidebar: {
     position: 'fixed',
@@ -545,6 +678,24 @@ const styles = {
   translationSection: {
     marginBottom: '1.5rem',
   },
+  searchSection: {
+    display: 'flex',
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: '0.5rem',
+    marginBottom: '1.5rem',
+    width: '97%',
+  },
+  searchInput: {
+    width: '100%',
+    padding: '0.75rem',
+    borderRadius: '8px',
+    border: '1px solid #e0e0e0',
+    fontSize: '1rem',
+    fontWeight: '500',
+    color: '#495057',
+    outline: 'none',
+  },
   sectionLabel: {
     display: 'block',
     fontSize: '0.75rem',
@@ -576,19 +727,17 @@ const styles = {
     borderColor: '#2c3e50',
   },
   selectionsGrid: {
-    boxSizing: 'border-box',
-    display: 'flex',
-    gap: '10px',
-    flexDirection: 'row',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 0.30fr)',
+    gap: '5px',
     marginBottom: '1.5rem',
     justifyContent: 'center',
-    // border: 'green solid 1px',
   },
   selectGroup: {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.5rem',
-    width: '25%',
+    width: '100%',
   },
   selectLabel: {
     fontSize: '0.85rem',
