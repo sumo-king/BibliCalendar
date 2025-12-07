@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Moon } from 'lunarphase-js';
 
-export const LunarCal = ({ isDarkMode }) => {
+export const LunarCal = ({ isDarkMode, onClick }) => {
   const [lunarDate, setLunarDate] = useState({
     phase: '',
     day: null,
@@ -90,9 +90,8 @@ export const LunarCal = ({ isDarkMode }) => {
       }
   }
 
-
   return (
-    <div style={{ ...styles.card, ...themeStyles.card }}>
+    <div style={{ ...styles.card, ...themeStyles.card }} onClick={onClick}>
       <div style={styles.cardHeader}>
         <h3 style={styles.cardTitle}>Lunar Calendar</h3>
       </div>
@@ -101,7 +100,6 @@ export const LunarCal = ({ isDarkMode }) => {
           <div style={styles.moonEmoji}>{lunarDate.phaseEmoji}</div>
           <div style={{ ...styles.moonPhaseName, color: themeStyles.displayBox.color }}>{lunarDate.phase}</div>
         </div>
-
 
         <div style={{ ...styles.dataRow, ...themeStyles.row }}>
           {/* <span style={styles.dataLabel}>Alert</span> */}
@@ -146,6 +144,7 @@ const styles = {
     flex: '1',
     transition: 'transform 0.2s, box-shadow 0.2s',
     border: '1px solid #e0e0e0',
+    cursor: 'pointer',
   },
   cardHeader: {
     backgroundColor: '#2c3e50',

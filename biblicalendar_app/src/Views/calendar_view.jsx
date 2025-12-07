@@ -2,7 +2,7 @@ import { LunarCal } from "../Controllers/calendar_controllers/lunar.controller";
 import { TraditionCal } from "../Controllers/calendar_controllers/tradition.controller";
 import { ZadokCal } from "../Controllers/calendar_controllers/zadok.controller";
 
-export const CalendarView = ({ matches, isDarkMode }) => {
+export const CalendarView = ({ matches, isDarkMode, setCurrentView }) => {
   return (
     <div style={styles.calendarSection}>
       {/* 
@@ -11,7 +11,7 @@ export const CalendarView = ({ matches, isDarkMode }) => {
          Ideally we should check them, but for this task I'll assume standard React prop passing.
       */}
       <div style={{ ...styles.cardGrid, flexDirection: matches ? 'row' : 'column' }}>
-        <LunarCal isDarkMode={isDarkMode} />
+        <LunarCal isDarkMode={isDarkMode} onClick={() => setCurrentView ? setCurrentView(2) : null} />
         <TraditionCal isDarkMode={isDarkMode} />
         <ZadokCal isDarkMode={isDarkMode} />
       </div>

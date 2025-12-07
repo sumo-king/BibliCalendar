@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import BibleView from "./Controllers/bible_controller/bible.controller";
 import { CalendarView } from "./Views/calendar_view";
+import { LunarDetailView } from "./Views/LunarDetailView";
 import { BookOpen, Calendar1Icon } from 'lucide-react';
 
 export const Body = ({ currentView, setCurrentView, matches, isDarkMode }) => {
@@ -43,8 +44,17 @@ export const Body = ({ currentView, setCurrentView, matches, isDarkMode }) => {
     <div style={styles.body}>
       <div style={styles.mainContent}>
         {currentView === 0 ?
-          <CalendarView matches={matches} isDarkMode={isDarkMode} /> :
-          <BibleView matches={matches} isDarkMode={isDarkMode} />
+          <CalendarView
+            matches={matches}
+            isDarkMode={isDarkMode}
+            setCurrentView={setCurrentView}
+          /> :
+          currentView === 2 ?
+            <LunarDetailView
+              onBack={() => setCurrentView(0)}
+              isDarkMode={isDarkMode}
+            /> :
+            <BibleView matches={matches} isDarkMode={isDarkMode} />
         }
       </div>
 
