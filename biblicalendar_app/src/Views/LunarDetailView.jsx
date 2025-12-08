@@ -59,7 +59,6 @@ export const LunarDetailView = ({ onBack, isDarkMode }) => {
         const nextFull = nextFullDate;
 
         setMoonData({
-            phase: phaseName,
             phaseName,
             illumination: (illuminationFraction * 100).toFixed(0),
             age: age.toFixed(1),
