@@ -19,7 +19,7 @@ export const LunarDetailView = ({ onBack, isDarkMode }) => {
     useEffect(() => {
         // Calculate reliable moon data
         const currentCalDate = new Date();
-        const phase = Moon.lunarPhase(currentCalDate);
+        // const phase = Moon.lunarPhase(currentCalDate);
         const age = Moon.lunarAge(currentCalDate);
         const agePercent = Moon.lunarAgePercent(currentCalDate); // 0.0 to 1.0
         const phaseEmoji = Moon.lunarPhaseEmoji(currentCalDate); // Updated per documentation

@@ -1,22 +1,22 @@
 import { useState } from "react";
 import {
   Book,
-  FileText,
-  Sparkles,
+  // FileText,
+  // Sparkles,
   AlertTriangle,
-  Menu,
-  X,
+  // Menu,
+  // X,
   ChevronLeft,
   ChevronRight,
   Loader2,
-  Library
+  // Library
 } from 'lucide-react';
-import { HebDay } from "../calendar_controllers/timedate.controller";
+// import { HebDay } from "../calendar_controllers/timedate.controller";
 
 export default function BibleView({ matches, isDarkMode }) {
   const [selectedBook, setSelectedBook] = useState('');
   const [selectedChapter, setSelectedChapter] = useState('');
-  const [selectedVerse, setSelectedVerse] = useState('');
+  // const [selectedVerse, setSelectedVerse] = useState('');
   const [bibleData, setBibleData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -94,6 +94,23 @@ export default function BibleView({ matches, isDarkMode }) {
     ]
   };
 
+  const abbrvBooks = {
+    'Gen': 'Genesis', 'Exod': 'Exodus', 'Lev': 'Leviticus', 'Num': 'Numbers', 'Deut': 'Deuteronomy',
+    'Josh': 'Joshua', 'Judg': 'Judges', 'Ruth': 'Ruth', '1 Sam': '1 Samuel', '2 Sam': '2 Samuel',
+    '1 Kgs': '1 Kings', '2 Kgs': '2 Kings', '1 Chr': '1 Chronicles', '2 Chr': '2 Chronicles',
+    'Ezra': 'Ezra', 'Neh': 'Nehemiah', 'Esth': 'Esther', 'Job': 'Job', 'Ps': 'Psalms',
+    'Prov': 'Proverbs', 'Eccl': 'Ecclesiastes', 'Song': 'Song of Solomon', 'Isa': 'Isaiah',
+    'Jer': 'Jeremiah', 'Lam': 'Lamentations', 'Ezek': 'Ezekiel', 'Dan': 'Daniel',
+    'Hos': 'Hosea', 'Joel': 'Joel', 'Amos': 'Amos', 'Obad': 'Obadiah', 'Jonah': 'Jonah',
+    'Mic': 'Micah', 'Nah': 'Nahum', 'Hab': 'Habakkuk', 'Zeph': 'Zephaniah', 'Hag': 'Haggai',
+    'Zech': 'Zechariah', 'Mal': 'Malachi', 'Matt': 'Matthew', 'Mark': 'Mark',
+    'Luke': 'Luke', 'John': 'John', 'Acts': 'Acts', 'Rom': 'Romans', '1 Cor': '1 Corinthians', '2 Cor': '2 Corinthians',
+    'Gal': 'Galatians', 'Eph': 'Ephesians', 'Phil': 'Philippians', 'Col': 'Colossians',
+    '1 Thess': '1 Thessalonians', '2 Thess': '2 Thessalonians',
+    '1 Tim': '1 Timothy', '2 Tim': '2 Timothy', 'Titus': 'Titus', 'Philem': 'Philemon',
+    'Heb': 'Hebrews', 'Jas': 'James', '1 Pet': '1 Peter', '2 Pet': '2 Peter',
+    '1 John': '1 John', '2 John': '2 John', '3 John': '3 John', 'Jude': 'Jude', 'Rev': 'Revelation'};
+
   const chapterCounts = {
     'Genesis': 50, 'Exodus': 40, 'Leviticus': 27, 'Numbers': 36, 'Deuteronomy': 34,
     'Joshua': 24, 'Judges': 21, 'Ruth': 4, '1 Samuel': 31, '2 Samuel': 24,
@@ -120,8 +137,8 @@ export default function BibleView({ matches, isDarkMode }) {
   ];
 
   // Flatten books list for searching
-  const allBooks = [...bibleBooks['Old Testament'], ...bibleBooks['New Testament']];
-
+  const allBooks = [...bibleBooks['Old Testament'], ...bibleBooks['New Testament'], ...Object.keys(abbrvBooks)];
+  
   const fetchScripture = async (book, chapter, verse = '') => {
     setLoading(true);
     setError(null);
@@ -150,16 +167,17 @@ export default function BibleView({ matches, isDarkMode }) {
     }
   };
 
-  const fetchBibleText = async () => {
-    if (!selectedBook || !selectedChapter) {
-      setError('Please select a book and chapter');
-      return;
-    }
-    await fetchScripture(selectedBook, selectedChapter, selectedVerse);
-  };
-
+  // const fetchBibleText = async () => {
+  //   if (!selectedBook || !selectedChapter) {
+  //     setError('Please select a book and chapter');
+  //     return;
+  //   }
+  //   await fetchScripture(selectedBook, selectedChapter, selectedVerse);
+  // };
+  // Search Handler
   const handleSearch = async (e) => {
     if (e.key === 'Enter' || e.type === 'click') {
+      // Trim and validate input
       const query = searchQuery.trim();
       if (!query) return;
 
@@ -205,25 +223,25 @@ export default function BibleView({ matches, isDarkMode }) {
       // Update state
       setSelectedBook(matchedBook);
       setSelectedChapter(chapter);
-      setSelectedVerse(verse);
+      // setSelectedVerse(verse);
 
       // Fetch immediately
       await fetchScripture(matchedBook, chapter, verse);
     }
   };
+  // Select Options Handlers from HTML selects
+  // const handleBookChange = (e) => {
+  //   setSelectedBook(e.target.value);
+  //   setSelectedChapter('');
+  //   setSelectedVerse('');
+  //   setBibleData(null);
+  // };
 
-  const handleBookChange = (e) => {
-    setSelectedBook(e.target.value);
-    setSelectedChapter('');
-    setSelectedVerse('');
-    setBibleData(null);
-  };
-
-  const handleChapterChange = (e) => {
-    setSelectedChapter(e.target.value);
-    setSelectedVerse('');
-    setBibleData(null);
-  };
+  // const handleChapterChange = (e) => {
+  //   setSelectedChapter(e.target.value);
+  //   setSelectedVerse('');
+  //   setBibleData(null);
+  // };
 
   const navigateChapter = async (direction) => {
     if (!selectedBook || !selectedChapter) return;
@@ -241,7 +259,7 @@ export default function BibleView({ matches, isDarkMode }) {
     if (newChapter === currentChapter) return;
 
     setSelectedChapter(String(newChapter));
-    setSelectedVerse('');
+    // setSelectedVerse('');
     setHighlightedVerses(new Set()); // Reset highlights
 
     await fetchScripture(selectedBook, String(newChapter), '');
@@ -260,7 +278,7 @@ export default function BibleView({ matches, isDarkMode }) {
   return (
     <div style={styles.bibleContainer}>
       {/* Mobile Menu Toggle - Only show on mobile (!matches) */}
-      {!matches && (
+      {/*!matches && (
         <button
           style={{ ...styles.menuToggle, ...themeStyles.menuToggle }}
           onClick={() => setIsSidebarOpen(true)}
@@ -268,12 +286,12 @@ export default function BibleView({ matches, isDarkMode }) {
         >
           <Menu size={24} />
         </button>
-      )}
+      )*/}
 
       {/* Sidebar Overlay - Only on mobile */}
-      {!matches && isSidebarOpen && (
+      {/* {!matches && isSidebarOpen && (
         <div style={styles.overlay} onClick={() => setIsSidebarOpen(false)} />
-      )}
+      )} */}
 
       {/* Navigation Arrows */}
       {selectedBook && selectedChapter && !isSidebarOpen && (
@@ -311,47 +329,37 @@ export default function BibleView({ matches, isDarkMode }) {
       {/* Scripture Selection Card / Sidebar */}
       <div style={{
         ...styles.selectionCard,
-        ...themeStyles.card,
-        ...(!matches ? styles.mobileSidebar : {}),
-        ...(!matches && isSidebarOpen ? styles.mobileSidebarOpen : {})
-      }}>
-        {!matches && (
+        ...themeStyles.card
+        // ,
+        // ...(!matches ? styles.mobileSidebar : {}),
+        // ...(!matches && isSidebarOpen ? styles.mobileSidebarOpen : {})
+        }}>
+        {/* {!matches && (
           <button
             style={styles.closeButton}
             onClick={() => setIsSidebarOpen(false)}
           >
             <X size={24} />
           </button>
-        )}
+        )} */}
 
-        <div style={{ ...styles.cardHeader, borderBottomColor: isDarkMode ? '#444' : '#f0f0f0' }}>
+        <div style={{ ...styles.cardHeader, borderBottomColor: isDarkMode ? '#444' : '#f0f0f0'  }}>
           <Book size={28} style={{ ...styles.headerIcon, ...themeStyles.icon }} />
           <div>
             <h2 style={{ ...styles.cardHeading, ...themeStyles.text }}>Scripture</h2>
             <p style={{ ...styles.cardSubheading, ...themeStyles.subText }}>Select passage</p>
           </div>
         </div>
-
-        {!matches && (
-          <div style={{ padding: '0 1.5rem 1rem 1.5rem', borderBottom: isDarkMode ? '1px solid #444' : '1px solid #f0f0f0' }}>
+        {/* Hebrew Day */}
+        {/* {!matches && (
+          <div style={{ position: 'relative', bottom: 0, borderBottom: isDarkMode ? '1px solid #444' : '1px solid #f0f0f0' }}>
             <HebDay />
           </div>
-        )}
-
-        <div style={styles.selectionBody}>
+        )} */}
+        {/* Scripture Selection Section */}
+        <div style={matches?styles.selectionBody: {display: "flex", flexDirection: "column", gap: "1rem", alignItems: "center", padding: "2rem 2rem"}}>
           {/* Search bar */}
-          <div style={styles.searchSection}>
-            <button
-              type="button"
-              onClick={handleSearch}
-              style={{
-                ...styles.searchButton,
-                backgroundColor: isDarkMode ? '#d4af37' : '#2c3e50',
-                color: isDarkMode ? '#1a1a1a' : '#fff'
-              }}
-            >
-              Search
-            </button>
+          <div style={matches ? styles.searchSection: {display: "flex", flexDirection: "column-reverse", gap: "0.5rem", alignItems: "center", }}>
             <input
               type="text"
               placeholder="Search (e.g. John 3:16)"
@@ -362,7 +370,7 @@ export default function BibleView({ matches, isDarkMode }) {
             />
           </div>
           {/* Translation Selector */}
-          <div style={styles.translationSection}>
+          <div style={styles.translationSection }>
             <label style={styles.sectionLabel}>Translation</label>
             <div style={styles.translationButtons}>
               {translations.map(trans => (
@@ -380,9 +388,19 @@ export default function BibleView({ matches, isDarkMode }) {
               ))}
             </div>
           </div>
-
+          <button
+              type="button"
+              onClick={handleSearch}
+              style={{
+                ...styles.searchButton,
+                backgroundColor: isDarkMode ? '#d4af37' : '#2c3e50',
+                color: isDarkMode ? '#1a1a1a' : '#fff'
+              }}
+            >
+              Search
+          </button>
           {/* Book, Chapter, Verse Selection */}
-          <div style={styles.selectionsGrid}>
+          {/* <div style={matches ?styles.selectionsGrid: {display: "none"}}>
             <div style={styles.selectGroup}>
               <label style={{ ...styles.selectLabel, color: isDarkMode ? '#aaa' : '#2c3e50' }}>
                 <Library size={16} />
@@ -451,12 +469,12 @@ export default function BibleView({ matches, isDarkMode }) {
           </div>
 
           <button
-            style={{
+            style={matches ?{
               ...styles.readButton,
               backgroundColor: isDarkMode ? '#d4af37' : '#2c3e50',
               color: isDarkMode ? '#1a1a1a' : '#fff',
               ...((!selectedBook || !selectedChapter || loading) ? styles.readButtonDisabled : {})
-            }}
+            }: {display: "none"}}
             onClick={fetchBibleText}
             disabled={!selectedBook || !selectedChapter || loading}
           >
@@ -471,7 +489,7 @@ export default function BibleView({ matches, isDarkMode }) {
                 <span>Read</span>
               </>
             )}
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -673,10 +691,18 @@ const styles = {
   },
   selectionBody: {
     padding: '1.5rem',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
     // border: 'red solid 1px'
   },
   translationSection: {
+    marginTop: '2rem',
+    display: 'flex',
+    flexDirection: 'column-reverse',
     marginBottom: '1.5rem',
+    alignItems: 'center',
+    gap: '0.5rem',
   },
   searchSection: {
     display: 'flex',
@@ -687,7 +713,7 @@ const styles = {
     width: '97%',
   },
   searchInput: {
-    width: '100%',
+    width: '80vw',
     padding: '0.75rem',
     borderRadius: '8px',
     border: '1px solid #e0e0e0',
