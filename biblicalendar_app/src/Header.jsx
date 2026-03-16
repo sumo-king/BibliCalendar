@@ -26,12 +26,12 @@ export const Header = ({ matches, isDarkMode, setIsDarkMode }) => {
             <HebDay />
           </div>}
           <button 
-            className='md:hidden p-2 rounded-xl hover:bg-gray-100 transition-colors' 
+            className={`md:hidden p-2 rounded-xl hover:bg-gray-100 transition-colors`}
             onClick={() => toggleMobileMenu()}
             aria-label="Toggle menu"
+            style={{ display: matches ? 'none' : 'block' }}
           >
             {
-              matches && 
                 mobileMenuOpen ? 
                 (
                     <X className="w-6 h-6 text-gray-900" strokeWidth={2} />
