@@ -16,7 +16,7 @@ import {
 export default function BibleView({ matches, isDarkMode }) {
   const [selectedBook, setSelectedBook] = useState('');
   const [selectedChapter, setSelectedChapter] = useState('');
-  // const [selectedVerse, setSelectedVerse] = useState('');
+  const [selectedVerse, setSelectedVerse] = useState('');
   const [bibleData, setBibleData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

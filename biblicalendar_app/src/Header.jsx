@@ -1,8 +1,14 @@
-import { Moon, Sun } from 'lucide-react';
+import { Menu, Moon, Sun, X } from 'lucide-react';
 import { HebDay } from "./Controllers/calendar_controllers/timedate.controller";
+import { useState } from 'react';
 
 export const Header = ({ matches, isDarkMode, setIsDarkMode }) => {
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  function toggleMobileMenu() {
+    setMobileMenuOpen(!mobileMenuOpen);
+  }
 
   return (
     <header style={{ ...styles.header, backgroundColor: isDarkMode ? '#121212' : '#2c3e50', borderBottomColor: isDarkMode ? '#d4af37' : '#d4af37' }}>
@@ -19,7 +25,17 @@ export const Header = ({ matches, isDarkMode, setIsDarkMode }) => {
           {matches && <div style={{ ...styles.hebday, backgroundColor: isDarkMode ? '#2c2c2c' : '#fff', color: isDarkMode ? '#e0e0e0' : '#2c3e50' }}>
             <HebDay />
           </div>}
-
+          <button 
+            className='md:hidden p-2 rounded-xl hover:bg-gray-100 transition-colors' 
+            onClick={() => toggleMobileMenu()}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? (
+                <X className="w-6 h-6 text-gray-900" strokeWidth={2} />
+            ) : (
+                <Menu className="w-6 h-6 text-gray-900" strokeWidth={2} />
+            )}
+          </button>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             style={{ ...styles.themeToggle, backgroundColor: isDarkMode ? '#2c2c2c' : '#fff', color: isDarkMode ? '#d4af37' : '#2c3e50' }}

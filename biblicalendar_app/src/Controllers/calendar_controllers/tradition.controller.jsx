@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { HDate } from '@hebcal/core';
+import { HDate, HebrewCalendar } from '@hebcal/core';
 
 export const TraditionCal = ({ isDarkMode }) => {
   const [tradDate, setTradDate] = useState({
@@ -12,6 +12,23 @@ export const TraditionCal = ({ isDarkMode }) => {
     isShabbat: false,
     parsha: ''
   });
+
+  useEffect(() => {
+    const hd = new HDate();
+
+    // console.log("Error CHECKING",hd.getMonthName() )
+
+    setTradDate({
+      day: hd.getDate(),
+      month: hd.getMonth(),
+      monthName: hd.getMonthName(), // Hebrew month name
+      year: hd.getFullYear(),
+      hebrewDate: hd.toString(), // Full Hebrew date string
+      dayOfWeek: hd.greg().toLocaleDateString('en-US', { weekday: 'long' }),
+      isShabbat: hd.getDay() === 6, // Saturday is day 6
+      parsha: '' // Could be enhanced with Sedra class for Torah portion
+    });
+  }, []);
 
   const themeStyles = {
     card: {
@@ -39,22 +56,8 @@ export const TraditionCal = ({ isDarkMode }) => {
     }
   };
 
-  useEffect(() => {
-    const hd = new HDate();
-
-    // console.log("Error CHECKING",hd.getMonthName() )
-
-    setTradDate({
-      day: hd.getDate(),
-      month: hd.getMonth(),
-      monthName: hd.getMonthName(), // Hebrew month name
-      year: hd.getFullYear(),
-      hebrewDate: hd.toString(), // Full Hebrew date string
-      dayOfWeek: hd.greg().toLocaleDateString('en-US', { weekday: 'long' }),
-      isShabbat: hd.getDay() === 6, // Saturday is day 6
-      parsha: '' // Could be enhanced with Sedra class for Torah portion
-    });
-  }, []);
+  
+  HebrewCalendar.calendar.
 
   return (
     <div style={{ ...styles.card, ...themeStyles.card }}>
