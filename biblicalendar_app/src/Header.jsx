@@ -11,93 +11,94 @@ export const Header = ({ matches, isDarkMode, setIsDarkMode }) => {
   }
 
   return (
-    <header style={{ ...styles.header, backgroundColor: isDarkMode ? '#121212' : '#2c3e50', borderBottomColor: isDarkMode ? '#d4af37' : '#d4af37' }}>
-      <div style={styles.headerContent}>
-        <div style={styles.logoContainer}>
-          {/* <CalendarCheck style={styles.logoIcon} /> */}
-          <h1 style={styles.logoText}>
-            BibliCalendar
-          </h1>
-        </div>
+    <>
+      <header style={{
+        ...styles.header,
+        backgroundColor: isDarkMode ? '#121212' : '#2c3e50',
+        borderBottomColor: isDarkMode ? '#d4af37' : '#d4af37'
+      }}>
+        <div style={styles.headerContent}>
+          <div style={styles.logoContainer}>
+            <h1 style={styles.logoText}>BibliCalendar</h1>
+          </div>
 
-        <div style={styles.controls}>
-          {/* <HebTime/> */}
-          {matches && <div style={{ ...styles.hebday, backgroundColor: isDarkMode ? '#2c2c2c' : '#fff', color: isDarkMode ? '#e0e0e0' : '#2c3e50' }}>
-            <HebDay />
-          </div>}
-          <button 
-            className={`md:hidden p-2 rounded-xl hover:bg-gray-100 transition-colors`}
-            onClick={() => toggleMobileMenu()}
-            aria-label="Toggle menu"
-            style={{ display: matches ? 'none' : 'block' }}
-          >
-            {
-                mobileMenuOpen ? 
-                (
-                    <X className="w-6 h-6 text-gray-900" strokeWidth={2} />
-                ) : (
-                    <Menu className="w-6 h-6 text-gray-900" strokeWidth={2} />
-                )
-            }
-          </button>
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            style={{ ...styles.themeToggle, backgroundColor: isDarkMode ? '#2c2c2c' : '#fff', color: isDarkMode ? '#d4af37' : '#2c3e50' }}
-            aria-label="Toggle Dark Mode"
-          >
-            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
+          <div style={styles.controls}>
+            {matches && (
+              <div style={{
+                ...styles.hebday,
+                backgroundColor: isDarkMode ? '#2c2c2c' : '#fff',
+                color: isDarkMode ? '#e0e0e0' : '#2c3e50'
+              }}>
+                <HebDay />
+              </div>
+            )}
+
+            <button
+              style={styles.menuButton}
+              onClick={toggleMobileMenu}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen
+                ? <X style={{ width: '24px', height: '24px', color: '#fff' }} strokeWidth={2} />
+                : <Menu style={{ width: '24px', height: '24px', color: '#fff' }} strokeWidth={2} />
+              }
+            </button>
+          </div>
         </div>
+      </header>
+
+      {/* Overlay */}
+      <div
+        onClick={toggleMobileMenu}
+        style={{
+          ...styles.overlay,
+          opacity: mobileMenuOpen ? 1 : 0,
+          pointerEvents: mobileMenuOpen ? 'all' : 'none',
+        }}
+      />
+
+      {/* Sliding Sidebar */}
+      <div style={{
+        ...styles.sidebar,
+        transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(100%)',
+        backgroundColor: isDarkMode ? '#1a1a1a' : '#f6f5f0',
+        color: isDarkMode ? '#e0e0e0' : '#2c3e50',
+      }}>
+        <ul style={styles.sidebarList}>
+          {['Bible', 'Calendar', 'Settings', 'About'].map((item) => (
+            <li key={item} style={styles.sidebarItem}>{item}</li>
+          ))}
+          <li>
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              style={{
+                ...styles.themeToggle,
+                backgroundColor: isDarkMode ? '#2c2c2c' : '#fff',
+                color: isDarkMode ? '#d4af37' : '#2c3e50'
+              }}
+              aria-label="Toggle Dark Mode"
+            >
+              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+          </li>
+        </ul>
       </div>
-    </header>
+    </>
   );
 };
 
 const styles = {
-  controls: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1rem',
-    marginLeft: 'auto', // Pushes to the right
-  },
-  themeToggle: {
-    border: 'none',
-    borderRadius: '50%',
-    width: '40px',
-    height: '40px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    transition: 'all 0.3s ease',
-  },
-  hebday: {
-    // Removed fixed positioning to flow with flex layout
-    backgroundColor: '#fff',
-    padding: '0.5rem 1rem',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    fontSize: '1rem',
-    fontWeight: '500',
-    color: '#2c3e50',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    whiteSpace: 'nowrap',
-
-  },
   header: {
     position: 'fixed',
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#2c3e50',
     borderBottom: '3px solid #d4af37',
     zIndex: 1000,
     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    display: 'flex',
     height: '4.5rem',
     transition: 'background-color 0.3s ease, border-color 0.3s ease',
   },
@@ -116,15 +117,85 @@ const styles = {
     alignItems: 'center',
     gap: '0.75rem',
   },
-  logoIcon: {
-    fontSize: '2rem',
-  },
   logoText: {
     margin: 0,
     color: '#fff',
     fontSize: '2.75rem',
     fontWeight: '300',
     letterSpacing: '0.5px',
-    // height: '3rem'
-  }
-}
+  },
+  controls: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+    marginLeft: 'auto',
+  },
+  menuButton: {
+    background: 'none',
+    border: 'none',
+    padding: '0.5rem',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'background-color 0.2s ease',
+  },
+  hebday: {
+    padding: '0.5rem 1rem',
+    borderRadius: '8px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    fontSize: '1rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    whiteSpace: 'nowrap',
+  },
+  overlay: {
+    position: 'fixed',
+    inset: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    zIndex: 1001,
+    transition: 'opacity 0.3s ease',
+  },
+  sidebar: {
+    position: 'fixed',
+    top: 0,
+    right: 0,
+    width: '260px',
+    height: '100vh',
+    zIndex: 1002,
+    boxShadow: '-4px 0 16px rgba(0,0,0,0.2)',
+    transition: 'transform 0.3s ease',
+    paddingTop: '5rem',
+  },
+  sidebarList: {
+    listStyle: 'none',
+    margin: 0,
+    padding: '1rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+  },
+  sidebarItem: {
+    padding: '0.75rem 1rem',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    fontWeight: '500',
+    transition: 'background-color 0.2s ease',
+  },
+  themeToggle: {
+    border: 'none',
+    borderRadius: '50%',
+    width: '40px',
+    height: '40px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    transition: 'all 0.3s ease',
+    marginLeft: '1rem',
+  },
+};
