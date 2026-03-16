@@ -30,11 +30,15 @@ export const Header = ({ matches, isDarkMode, setIsDarkMode }) => {
             onClick={() => toggleMobileMenu()}
             aria-label="Toggle menu"
           >
-            {mobileMenuOpen ? (
-                <X className="w-6 h-6 text-gray-900" strokeWidth={2} />
-            ) : (
-                <Menu className="w-6 h-6 text-gray-900" strokeWidth={2} />
-            )}
+            {
+              matches && 
+                mobileMenuOpen ? 
+                (
+                    <X className="w-6 h-6 text-gray-900" strokeWidth={2} />
+                ) : (
+                    <Menu className="w-6 h-6 text-gray-900" strokeWidth={2} />
+                )
+            }
           </button>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
