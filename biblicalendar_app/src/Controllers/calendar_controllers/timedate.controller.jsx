@@ -15,8 +15,6 @@ export const HebDay = () => {
 
     useEffect(() => {
         const hd = new HDate();
-
-        console.log("Error CHECKING", hd.getMonthName());
         
         setTradDate({
             day: hd.getDate(),

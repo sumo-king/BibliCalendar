@@ -25,12 +25,18 @@ function App() {
 
   return (
     <div style={{ ...homePageStyles, backgroundColor: isDarkMode ? '#1a1a1a' : '#f6f5f0' }}>
-      <Header matches={matches} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
-      <Body
+      <Header 
+        matches={matches} 
+        isDarkMode={isDarkMode} 
+        setIsDarkMode={setIsDarkMode}
         currentView={currentView}
         setCurrentView={setCurrentView}
+        />
+      <Body
         matches={matches}
         isDarkMode={isDarkMode}
+        currentView={currentView}
+        setCurrentView={setCurrentView}
       />
     </div>
   );

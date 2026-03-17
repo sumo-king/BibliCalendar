@@ -4,7 +4,7 @@ import { CalendarView } from "./Views/calendar_view";
 import { LunarDetailView } from "./Views/LunarDetailView";
 import { BookOpen, Calendar1Icon } from 'lucide-react';
 
-export const Body = ({ currentView, setCurrentView, matches, isDarkMode }) => {
+export const Body = ({ currentView, setCurrentView, matches, isDarkMode, theme }) => {
   const [scrollOpacity, setScrollOpacity] = useState(1);
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export const Body = ({ currentView, setCurrentView, matches, isDarkMode }) => {
         }
       </div>
 
-      <nav style={{ ...styles.tabBar, ...themeStyles.tabBar }}>
+      <nav style={{ ...styles.tabBar, ...themeStyles.tabBar, display: matches ? 'flex' :'none' }}>
         <button
           style={{
             ...styles.tab,

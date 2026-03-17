@@ -57,7 +57,7 @@ export const TraditionCal = ({ isDarkMode }) => {
   };
 
   
-  HebrewCalendar.calendar.
+  // HebrewCalendar.calendar.
 
   return (
     <div style={{ ...styles.card, ...themeStyles.card }}>

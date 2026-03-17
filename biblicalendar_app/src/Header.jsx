@@ -1,8 +1,8 @@
-import { Menu, Moon, Sun, X } from 'lucide-react';
+import { BookOpen, Calendar1Icon, Menu, Moon, Sun, X } from 'lucide-react';
 import { HebDay } from "./Controllers/calendar_controllers/timedate.controller";
 import { useState } from 'react';
 
-export const Header = ({ matches, isDarkMode, setIsDarkMode }) => {
+export const Header = ({ matches, isDarkMode, setIsDarkMode, setCurrentView }) => {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -34,7 +34,7 @@ export const Header = ({ matches, isDarkMode, setIsDarkMode }) => {
             )}
 
             <button
-              style={styles.menuButton}
+              style={{...styles.menuButton, display: matches ? 'none' : 'flex'}}
               onClick={toggleMobileMenu}
               aria-label="Toggle menu"
             >
@@ -64,11 +64,21 @@ export const Header = ({ matches, isDarkMode, setIsDarkMode }) => {
         backgroundColor: isDarkMode ? '#1a1a1a' : '#f6f5f0',
         color: isDarkMode ? '#e0e0e0' : '#2c3e50',
       }}>
-        <ul style={styles.sidebarList}>
-          {['Bible', 'Calendar', 'Settings', 'About'].map((item) => (
-            <li key={item} style={styles.sidebarItem}>{item}</li>
-          ))}
-          <li>
+        <div style={{flexDirection: 'column', display: 'flex', gap: '1rem', padding: '1rem'}}>
+          <button
+            style={{display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: '0.5rem'}}
+            onClick={() => { setCurrentView(1); toggleMobileMenu(); }}
+          >
+            <BookOpen size={20} strokeWidth={2.5} />
+          <span>Bible</span>
+        </button>
+        <button
+          style={{display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: '0.5rem'}}
+          onClick={() => { setCurrentView(0); toggleMobileMenu(); }}
+        >
+          <Calendar1Icon size={20} strokeWidth={2.5} />
+          <span>Calendar</span>
+        </button>
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               style={{
@@ -80,8 +90,7 @@ export const Header = ({ matches, isDarkMode, setIsDarkMode }) => {
             >
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-          </li>
-        </ul>
+        </div>
       </div>
     </>
   );
