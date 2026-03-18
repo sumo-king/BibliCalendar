@@ -16,23 +16,43 @@ BibliCalendar is a comprehensive web application designed to integrate spiritual
   - Easy navigation by Book, Chapter, and Verse.
   - Verse highlighting functionality.
   - Clean, distraction-free reading mode.
-- **Calendar Integration**: 
-  - View dates and events (Hebrew calendar integration powered by Hebcal).
-  - Moon phase tracking.
-- **Responsive Design**: Optimized for both desktop and mobile experiences.
+- **Advanced Calendar Integration**: 
+  - Hebrew calendar integration powered by Hebcal.
+  - Moon phase tracking with detailed lunar information.
+  - Multiple calendar views (Lunar, Time/Date, Tradition, Zadok).
+  - Moon phase details and lunar cycle tracking.
+- **Responsive Design**: Optimized for both desktop and mobile experiences with Material Design principles.
 
 ## Tools and APIs Used
 This project is built using the following technologies:
 
 ### Frontend
-- **React**: The core framework for building the user interface.
+- **React**: The core framework for building the user interface (v18.2.0).
 - **Tailwind CSS**: For utility-first styling and responsive design.
+- **Material-UI (MUI)**: Comprehensive component library for building modern interfaces.
+- **Emotion**: CSS-in-JS library for component styling.
 - **Lucide React**: For beautiful, consistent iconography.
 
-### APIs and Libraries
+### Backend & Services
 - **Bible API** (`bible-api.com`): Used to fetch scripture text in various translations.
 - **@hebcal/core**: Provides Hebrew calendar calculations and Jewish holidays.
 - **lunarphase-js**: Calculates moon phases for the calendar view.
+
+## Project Architecture
+The application follows a clean, modular architecture with clear separation of concerns:
+
+### Structure
+- **Controllers/**: Business logic and state management
+  - `bible_controller/`: Handles Bible reader functionality
+  - `calendar_controllers/`: Manages different calendar views (Lunar, Time/Date, Tradition, Zadok)
+- **Views/**: Presentation components
+  - `calendar_view.jsx`: Main calendar display component
+  - `LunarDetailView.jsx`: Detailed lunar information view
+- **Services/**: External API integration and utilities
+  - `bible.service.js`: Bible API integration
+- **Hooks/**: Custom React hooks (extensible)
+
+This structure enables better code organization, reusability, and maintainability.
 
 ## Deployment
 To deploy this project locally or for production:
