@@ -19,6 +19,9 @@ export default function BibleView({ matches, isDarkMode }) {
   const [highlightedVerses, setHighlightedVerses] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState('');
 
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
   const themeStyles = {
     container: {
       color: isDarkMode ? '#e0e0e0' : 'inherit',
@@ -138,11 +141,30 @@ export default function BibleView({ matches, isDarkMode }) {
       // Update state
       setSelectedBook(matchedBook);
       setSelectedChapter(chapter);
-      // setSelectedVerse(verse);
 
       // Fetch immediately
       await fetchScripture(matchedBook, chapter, verse);
     }
+  };
+
+  const handleInputChange = (e) => {
+  const value = e.target.value;
+  setSearchQuery(value);
+
+  if (value.trim() === '') {
+    setSuggestions([]);
+    setShowSuggestions(false);
+    return;
+  }
+
+  // Match against book names (full + abbreviated)
+  const lower = value.toLowerCase();
+  const matched = bibleService.allBooks
+    .filter(book => book.toLowerCase().startsWith(lower))
+    .slice(0, 5); // limit to 5 suggestions
+
+  setSuggestions(matched);
+  setShowSuggestions(matched.length > 0);
   };
 
   const navigateChapter = async (direction) => {
@@ -177,12 +199,15 @@ export default function BibleView({ matches, isDarkMode }) {
     setHighlightedVerses(newHighlights);
   };
 
+  
+
   return (
     <div style={styles.bibleContainer}>
 
       {/* Navigation Arrows */}
       {selectedBook && selectedChapter && !isSidebarOpen && (
         <>
+          {/* -- Left Arrow -- */}
           <button
             style={{
               ...styles.navigationArrow,
@@ -196,7 +221,7 @@ export default function BibleView({ matches, isDarkMode }) {
           >
             <ChevronLeft size={24} />
           </button>
-
+          {/* -- Right Arrow -- */}
           <button
             style={{
               ...styles.navigationArrow,
@@ -230,15 +255,51 @@ export default function BibleView({ matches, isDarkMode }) {
         {/* Scripture Selection Section */}
         <div style={matches?styles.selectionBody: {display: "flex", flexDirection: "column", gap: "1rem", alignItems: "center", padding: "2rem 2rem"}}>
           {/* Search bar */}
-          <div style={matches ? styles.searchSection: {display: "flex", flexDirection: "column-reverse", gap: "0.5rem", alignItems: "center", }}>
+          <div style={matches ? styles.searchSection: {display: "flex", flexDirection: "column-reverse", gap: "0.5rem", alignItems: "center"}}>
             <input
               type="text"
               placeholder="Search (e.g. John 3:16)"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleInputChange}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
               onKeyDown={handleSearch}
-              style={{ ...styles.searchInput, ...themeStyles.input }}
+              style={{ ...styles.searchInput, ...themeStyles.input, maxWidth: matches ? "100%" : "80%" }}
             />
+              <div style={{ position: 'relative', width: '100%' }}>
+                {showSuggestions && (
+                  <ul style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    backgroundColor: themeStyles.input.backgroundColor,
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    listStyle: 'none',
+                    margin: 0,
+                    padding: 0,
+                    zIndex: 1000,
+                  }}>
+                    {suggestions.map((suggestion, index) => (
+                      <li
+                        key={index}
+                        onMouseDown={() => {           // onMouseDown fires before onBlur
+                          setSearchQuery(suggestion);
+                          setShowSuggestions(false);
+                        }}
+                        style={{
+                          padding: '8px 12px',
+                          cursor: 'pointer',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = '#rgba(0,0,0,0.1)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        {suggestion}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
           </div>
           {/* Translation Selector */}
           <div style={styles.translationSection }>
