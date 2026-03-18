@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { HDate, HebrewCalendar } from '@hebcal/core';
+import { HDate } from '@hebcal/core';
 
 export const TraditionCal = ({ isDarkMode }) => {
   const [tradDate, setTradDate] = useState({
