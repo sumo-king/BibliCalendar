@@ -6,8 +6,7 @@ import {
   ChevronRight,
   Loader2,
 } from 'lucide-react';
-import { allBooks, chapterCounts, translations } from "../../Services/bible";
-import { BibleService } from "../../Services/bible.service";
+import BibleService from "../../Services/bible.service";
 
 export default function BibleView({ matches, isDarkMode }) {
   const [selectedBook, setSelectedBook] = useState('');
@@ -67,20 +66,19 @@ export default function BibleView({ matches, isDarkMode }) {
       color: isDarkMode ? '#1a1a1a' : '#fff',
     }
   };
-  
+
+  const bibleService = new BibleService();
+
   const fetchScripture = async (book, chapter, verse = '') => {
     setLoading(true);
     setError(null);
     setHighlightedVerses(new Set());
 
+
     try {
-      const response = await BibleService.fetchScripture(book, chapter, verse, translation);
+      const response = await bibleService.fetchScripture(book, chapter, verse, translation);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch Bible text');
-      }
-
-      const data = await response.json();
+      const data = await response;
       setBibleData(data);
       if (!matches) setIsSidebarOpen(false);
     } catch (err) {
@@ -103,7 +101,7 @@ export default function BibleView({ matches, isDarkMode }) {
 
       // Find matching book
       // We sort books by length descending to match "1 John" before "John"
-      const sortedBooks = allBooks.sort((a, b) => b.length - a.length);
+      const sortedBooks = bibleService.allBooks.sort((a, b) => b.length - a.length);
       const matchedBook = sortedBooks.find(book =>
         cleanQuery.toLowerCase().startsWith(book.toLowerCase())
       );
@@ -151,7 +149,7 @@ export default function BibleView({ matches, isDarkMode }) {
     if (!selectedBook || !selectedChapter) return;
 
     const currentChapter = Number(selectedChapter);
-    const maxChapter = chapterCounts[selectedBook];
+    const maxChapter = bibleService.chapterCounts[selectedBook];
     let newChapter;
 
     if (direction === 'prev') {
@@ -204,10 +202,10 @@ export default function BibleView({ matches, isDarkMode }) {
               ...styles.navigationArrow,
               ...styles.arrowRight,
               ...themeStyles.button,
-              ...(Number(selectedChapter) >= chapterCounts[selectedBook] ? styles.arrowDisabled : {})
+              ...(Number(selectedChapter) >= bibleService.chapterCounts[selectedBook] ? styles.arrowDisabled : {})
             }}
             onClick={() => navigateChapter('next')}
-            disabled={Number(selectedChapter) >= chapterCounts[selectedBook]}
+            disabled={Number(selectedChapter) >= bibleService.chapterCounts[selectedBook]}
             aria-label="Next chapter"
           >
             <ChevronRight size={24} />
@@ -246,7 +244,7 @@ export default function BibleView({ matches, isDarkMode }) {
           <div style={styles.translationSection }>
             <label style={styles.sectionLabel}>Translation</label>
             <div style={styles.translationButtons}>
-              {translations.map(trans => (
+              {bibleService.translations.map(trans => (
                 <button
                   key={trans.id}
                   style={{

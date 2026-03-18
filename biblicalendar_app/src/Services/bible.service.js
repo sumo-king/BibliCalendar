@@ -1,5 +1,5 @@
 
-export class BibleService {
+export default class BibleService {
 
   async fetchScripture(book, chapter, verse = '', translation = 'web') {
       let query = `${book} ${chapter}`;
@@ -16,9 +16,8 @@ export class BibleService {
       const data = await response.json();
       return data;
   }
-}
 
-const bibleBooks = {
+  bibleBooks = {
     'Old Testament': [
       'Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy',
       'Joshua', 'Judges', 'Ruth', '1 Samuel', '2 Samuel',
@@ -38,8 +37,8 @@ const bibleBooks = {
       'Jude', 'Revelation'
     ]
   };
-
-  const abbrvBooks = {
+  
+  abbrvBooks = {
     'Gen': 'Genesis', 'Exod': 'Exodus', 'Lev': 'Leviticus', 'Num': 'Numbers', 'Deut': 'Deuteronomy',
     'Josh': 'Joshua', 'Judg': 'Judges', 'Ruth': 'Ruth', '1 Sam': '1 Samuel', '2 Sam': '2 Samuel',
     '1 Kgs': '1 Kings', '2 Kgs': '2 Kings', '1 Chr': '1 Chronicles', '2 Chr': '2 Chronicles',
@@ -56,7 +55,7 @@ const bibleBooks = {
     'Heb': 'Hebrews', 'Jas': 'James', '1 Pet': '1 Peter', '2 Pet': '2 Peter',
     '1 John': '1 John', '2 John': '2 John', '3 John': '3 John', 'Jude': 'Jude', 'Rev': 'Revelation'};
 
-  const chapterCounts = {
+  chapterCounts = {
     'Genesis': 50, 'Exodus': 40, 'Leviticus': 27, 'Numbers': 36, 'Deuteronomy': 34,
     'Joshua': 24, 'Judges': 21, 'Ruth': 4, '1 Samuel': 31, '2 Samuel': 24,
     '1 Kings': 22, '2 Kings': 25, '1 Chronicles': 29, '2 Chronicles': 36,
@@ -74,7 +73,7 @@ const bibleBooks = {
     '1 John': 5, '2 John': 1, '3 John': 1, 'Jude': 1, 'Revelation': 22
   };
 
-  const translations = [
+  translations = [
     { id: 'web', name: 'WEB' },
     { id: 'kjv', name: 'KJV' },
     { id: 'bbe', name: 'BBE' },
@@ -82,6 +81,5 @@ const bibleBooks = {
   ];
 
   // Flatten books list for searching
-  const allBooks = [...bibleBooks['Old Testament'], ...bibleBooks['New Testament'], ...Object.keys(abbrvBooks)];
-
-export { bibleBooks, abbrvBooks, chapterCounts, translations, allBooks };
+  allBooks = [...this.bibleBooks['Old Testament'], ...this.bibleBooks['New Testament'], ...Object.keys(this.abbrvBooks)];
+}
