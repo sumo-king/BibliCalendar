@@ -9,6 +9,7 @@ import {
 import BibleService from "../../Services/bible.service";
 
 export default function BibleView({ matches, isDarkMode }) {
+
   const [selectedBook, setSelectedBook] = useState('');
   const [selectedChapter, setSelectedChapter] = useState('');
   const [bibleData, setBibleData] = useState(null);
@@ -76,7 +77,6 @@ export default function BibleView({ matches, isDarkMode }) {
     setLoading(true);
     setError(null);
     setHighlightedVerses(new Set());
-
 
     try {
       const response = await bibleService.fetchScripture(book, chapter, verse, translation);
@@ -199,8 +199,6 @@ export default function BibleView({ matches, isDarkMode }) {
     setHighlightedVerses(newHighlights);
   };
 
-  
-
   return (
     <div style={styles.bibleContainer}>
 
@@ -255,7 +253,7 @@ export default function BibleView({ matches, isDarkMode }) {
         {/* Scripture Selection Section */}
         <div style={matches?styles.selectionBody: {display: "flex", flexDirection: "column", gap: "1rem", alignItems: "center", padding: "2rem 2rem"}}>
           {/* Search bar */}
-          <div style={matches ? styles.searchSection: {display: "flex", flexDirection: "column-reverse", gap: "0.5rem", alignItems: "center"}}>
+          <div style={matches ? styles.searchSection: {display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "center"}}>
             <input
               type="text"
               placeholder="Search (e.g. John 3:16)"
@@ -265,41 +263,41 @@ export default function BibleView({ matches, isDarkMode }) {
               onKeyDown={handleSearch}
               style={{ ...styles.searchInput, ...themeStyles.input, maxWidth: matches ? "100%" : "80%" }}
             />
-              <div style={{ position: 'relative', width: '100%' }}>
-                {showSuggestions && (
-                  <ul style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    right: 0,
-                    backgroundColor: themeStyles.input.backgroundColor,
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    listStyle: 'none',
-                    margin: 0,
-                    padding: 0,
-                    zIndex: 1000,
-                  }}>
-                    {suggestions.map((suggestion, index) => (
-                      <li
-                        key={index}
-                        onMouseDown={() => {           // onMouseDown fires before onBlur
-                          setSearchQuery(suggestion);
-                          setShowSuggestions(false);
-                        }}
-                        style={{
-                          padding: '8px 12px',
-                          cursor: 'pointer',
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.backgroundColor = '#rgba(0,0,0,0.1)'}
-                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        {suggestion}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+            <div style={{ position: 'relative', width: '100%', marginTop: '0.5rem' }}>
+              {showSuggestions && (
+                <ul style={{
+                  position: 'relative',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  backgroundColor: themeStyles.input.backgroundColor,
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  listStyle: 'none',
+                  margin: 0,
+                  padding: 0,
+                  zIndex: 1000,
+                }}>
+                  {suggestions.map((suggestion, index) => (
+                    <li
+                      key={index}
+                      onMouseDown={() => {           // onMouseDown fires before onBlur
+                        setSearchQuery(suggestion);
+                        setShowSuggestions(false);
+                      }}
+                      style={{
+                        padding: '8px 12px',
+                        cursor: 'pointer',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#rgba(0,0,0,0.1)'}
+                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      {suggestion}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
           {/* Translation Selector */}
           <div style={styles.translationSection }>
@@ -543,7 +541,7 @@ const styles = {
   searchSection: {
     display: 'flex',
     alignItems: 'center',
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: '0.5rem',
     marginBottom: '1.5rem',
     width: '97%',
