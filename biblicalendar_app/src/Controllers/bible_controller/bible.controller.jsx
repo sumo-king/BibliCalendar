@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Book,
   AlertTriangle,
@@ -19,6 +19,7 @@ export default function BibleView({ matches, isDarkMode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [highlightedVerses, setHighlightedVerses] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState('');
+  const [bookChapters, setBookChapters] = useState([]);
 
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -96,8 +97,12 @@ export default function BibleView({ matches, isDarkMode }) {
   const handleSearch = async (e) => {
     if (e.key === 'Enter' || e.type === 'click') {
       // Trim and validate input
+      setBookChapters([]); // Reset chapter list on new search
+      setBibleData(null) // Clear previous scripture on new search
       const query = searchQuery.trim();
       if (!query) return;
+
+
 
       // Clean up query
       const cleanQuery = query.replace(/\s+/g, ' ');
@@ -118,12 +123,14 @@ export default function BibleView({ matches, isDarkMode }) {
       const remainder = cleanQuery.slice(matchedBook.length).trim();
 
       if (!remainder) {
-        // Book only
         setSelectedBook(matchedBook);
-        setError(`Please select a chapter for ${matchedBook}`);
+        setBookChapters(
+          Array.from({ length: bibleService.chapterCounts[matchedBook] }, (_, i) => i + 1)
+        );
         return;
       }
-
+      
+      
       // Try to parse Chapter:Verse or Chapter
       // Formats: "1", "1:1", "1 1"
       const parts = remainder.split(/[:\s]/);
@@ -252,6 +259,14 @@ export default function BibleView({ matches, isDarkMode }) {
         
         {/* Scripture Selection Section */}
         <div style={matches?styles.selectionBody: {display: "flex", flexDirection: "column", gap: "1rem", alignItems: "center", padding: "2rem 2rem"}}>
+          {/* <DailyVerseCard
+            fetchScripture={fetchScripture}
+            onOpenPassage={(portion) => {
+              setSearchQuery(portion.ref);   // populate your search field
+              handleSearch(portion.book, portion.chapter); // trigger your existing search
+            }}
+            bibleService={bibleService}
+          /> */}
           {/* Search bar */}
           <div style={matches ? styles.searchSection: {display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "center"}}>
             <input
@@ -334,20 +349,34 @@ export default function BibleView({ matches, isDarkMode }) {
 
       {/* Scripture Display Card */}
       <div style={{ ...styles.scriptureCard, ...themeStyles.card }}>
+        {/* Chapter suggestions */}
+        {
+          bookChapters?.length > 0 && 
+            <ul>
+              {bookChapters.map((value, index)=>(
+                <li key={index} style={{listStyle: 'none'}}>
+                  <button type="button" onClick={async ()=>{await fetchScripture(selectedBook, value); setBookChapters([])}}>
+                    {selectedBook} {value}
+                  </button>
+                </li>
+              ))}
+            </ul>
+        }
+        {/* Error Message */}
         {error && (
           <div style={styles.errorBox}>
             <AlertTriangle size={24} />
             <span>{error}</span>
           </div>
         )}
-
+        {/* Loading Message */}
         {loading && (
           <div style={styles.loadingBox}>
             <Loader2 size={40} style={styles.spin} />
             <p style={styles.loadingText}>Loading scripture...</p>
           </div>
         )}
-
+        {/* Scripture Content */}
         {bibleData && !loading && (
           <div style={styles.scriptureContent}>
             <h3 style={{ ...styles.reference, ...themeStyles.text }}>{bibleData.reference}</h3>
@@ -383,6 +412,85 @@ export default function BibleView({ matches, isDarkMode }) {
             <p style={{ ...styles.emptyStateText, ...themeStyles.text }}>Select a passage</p>
             <p style={{ ...styles.emptyStateSubtext, ...themeStyles.subText }}>Choose a book and chapter to begin</p>
           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+function DailyVerseCard({ fetchScripture, onOpenPassage, bibleService }) {
+  const [portionIndex, setPortionIndex] = useState(bibleService.getPortionIndexForDate(new Date()));
+  const [verse, setVerse] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+
+    async function loadVerse(index) {
+    const portion = bibleService.TORAH_PORTIONS[index];
+    setLoading(true);
+    setError(false);
+    try {
+      const data = await fetchScripture(portion.book, portion.chapter, '', 'web');
+      const first = data.verses?.[0];
+      setVerse({
+        text: first?.text?.trim() ?? data.text?.trim(),
+        verseNum: first?.verse ?? 1,
+        portion,
+      });
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+    }
+
+    loadVerse(portionIndex);
+  }, [portionIndex, fetchScripture, bibleService]);
+
+  
+
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  return (
+    <div className="daily-verse-card">
+      <div className="dv-header">
+        <div className="dv-label">
+          <div className="dv-icon">📖</div>
+          <div>
+            <div className="dv-title">Daily Torah Portion</div>
+            <div className="dv-subtitle">{today}</div>
+          </div>
+        </div>
+        <span className="dv-badge">{bibleService.TORAH_PORTIONS[portionIndex].name}</span>
+      </div>
+
+      {loading && <p className="dv-loading">Fetching verse…</p>}
+      {error && <p className="dv-error">Could not load verse. Check your connection.</p>}
+      {!loading && !error && verse && (
+        <>
+          <div className="dv-ref">{verse.portion.ref}:{verse.verseNum} (WEB)</div>
+          <blockquote className="dv-verse">{verse.text}</blockquote>
+          <div className="dv-portion">Parashat {verse.portion.name} · {verse.portion.ref}</div>
+        </>
+      )}
+
+      <div className="dv-footer">
+        <div className="dv-nav">
+          <button onClick={() => setPortionIndex(i => (i - 1 + bibleService.TORAH_PORTIONS.length) % bibleService.TORAH_PORTIONS.length)}>
+            ← Previous
+          </button>
+          <button onClick={() => setPortionIndex(i => (i + 1) % bibleService.TORAH_PORTIONS.length)}>
+            Next →
+          </button>
+        </div>
+        {verse && (
+          <button className="dv-open" onClick={() => onOpenPassage(verse.portion)}>
+            Open passage ↗
+          </button>
         )}
       </div>
     </div>
