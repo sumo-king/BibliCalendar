@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Book,
   AlertTriangle,
@@ -102,8 +102,6 @@ export default function BibleView({ matches, isDarkMode }) {
       const query = searchQuery.trim();
       if (!query) return;
 
-
-
       // Clean up query
       const cleanQuery = query.replace(/\s+/g, ' ');
 
@@ -129,7 +127,6 @@ export default function BibleView({ matches, isDarkMode }) {
         );
         return;
       }
-      
       
       // Try to parse Chapter:Verse or Chapter
       // Formats: "1", "1:1", "1 1"
@@ -347,21 +344,30 @@ export default function BibleView({ matches, isDarkMode }) {
         </div>
       </div>
 
-      {/* Scripture Display Card */}
+      {/* -- Scripture Display Card -- */}
       <div style={{ ...styles.scriptureCard, ...themeStyles.card }}>
+
         {/* Chapter suggestions */}
         {
           bookChapters?.length > 0 && 
             <ul>
               {bookChapters.map((value, index)=>(
                 <li key={index} style={{listStyle: 'none'}}>
-                  <button type="button" onClick={async ()=>{await fetchScripture(selectedBook, value); setBookChapters([])}}>
+                  <button type="button" onClick={async ()=>{
+                    await fetchScripture(selectedBook, value); 
+                    setBookChapters([])
+                    setSelectedBook(selectedBook);
+                    setSelectedChapter(value);
+                  }} 
+                    style={styles.tab}
+                  >
                     {selectedBook} {value}
                   </button>
                 </li>
               ))}
             </ul>
         }
+
         {/* Error Message */}
         {error && (
           <div style={styles.errorBox}>
@@ -419,85 +425,106 @@ export default function BibleView({ matches, isDarkMode }) {
 }
 
 
-function DailyVerseCard({ fetchScripture, onOpenPassage, bibleService }) {
-  const [portionIndex, setPortionIndex] = useState(bibleService.getPortionIndexForDate(new Date()));
-  const [verse, setVerse] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+// function DailyVerseCard({ fetchScripture, onOpenPassage, bibleService }) {
+//   const [portionIndex, setPortionIndex] = useState(bibleService.getPortionIndexForDate(new Date()));
+//   const [verse, setVerse] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(false);
 
-  useEffect(() => {
+//   useEffect(() => {
 
-    async function loadVerse(index) {
-    const portion = bibleService.TORAH_PORTIONS[index];
-    setLoading(true);
-    setError(false);
-    try {
-      const data = await fetchScripture(portion.book, portion.chapter, '', 'web');
-      const first = data.verses?.[0];
-      setVerse({
-        text: first?.text?.trim() ?? data.text?.trim(),
-        verseNum: first?.verse ?? 1,
-        portion,
-      });
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-    }
+//     async function loadVerse(index) {
+//     const portion = bibleService.TORAH_PORTIONS[index];
+//     setLoading(true);
+//     setError(false);
+//     try {
+//       const data = await fetchScripture(portion.book, portion.chapter, '', 'web');
+//       const first = data.verses?.[0];
+//       setVerse({
+//         text: first?.text?.trim() ?? data.text?.trim(),
+//         verseNum: first?.verse ?? 1,
+//         portion,
+//       });
+//     } catch {
+//       setError(true);
+//     } finally {
+//       setLoading(false);
+//     }
+//     }
 
-    loadVerse(portionIndex);
-  }, [portionIndex, fetchScripture, bibleService]);
+//     loadVerse(portionIndex);
+//   }, [portionIndex, fetchScripture, bibleService]);
 
   
 
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-  });
+//   const today = new Date().toLocaleDateString('en-US', {
+//     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+//   });
 
-  return (
-    <div className="daily-verse-card">
-      <div className="dv-header">
-        <div className="dv-label">
-          <div className="dv-icon">📖</div>
-          <div>
-            <div className="dv-title">Daily Torah Portion</div>
-            <div className="dv-subtitle">{today}</div>
-          </div>
-        </div>
-        <span className="dv-badge">{bibleService.TORAH_PORTIONS[portionIndex].name}</span>
-      </div>
+//   return (
+//     <div className="daily-verse-card">
+//       <div className="dv-header">
+//         <div className="dv-label">
+//           <div className="dv-icon">📖</div>
+//           <div>
+//             <div className="dv-title">Daily Torah Portion</div>
+//             <div className="dv-subtitle">{today}</div>
+//           </div>
+//         </div>
+//         <span className="dv-badge">{bibleService.TORAH_PORTIONS[portionIndex].name}</span>
+//       </div>
 
-      {loading && <p className="dv-loading">Fetching verse…</p>}
-      {error && <p className="dv-error">Could not load verse. Check your connection.</p>}
-      {!loading && !error && verse && (
-        <>
-          <div className="dv-ref">{verse.portion.ref}:{verse.verseNum} (WEB)</div>
-          <blockquote className="dv-verse">{verse.text}</blockquote>
-          <div className="dv-portion">Parashat {verse.portion.name} · {verse.portion.ref}</div>
-        </>
-      )}
+//       {loading && <p className="dv-loading">Fetching verse…</p>}
+//       {error && <p className="dv-error">Could not load verse. Check your connection.</p>}
+//       {!loading && !error && verse && (
+//         <>
+//           <div className="dv-ref">{verse.portion.ref}:{verse.verseNum} (WEB)</div>
+//           <blockquote className="dv-verse">{verse.text}</blockquote>
+//           <div className="dv-portion">Parashat {verse.portion.name} · {verse.portion.ref}</div>
+//         </>
+//       )}
 
-      <div className="dv-footer">
-        <div className="dv-nav">
-          <button onClick={() => setPortionIndex(i => (i - 1 + bibleService.TORAH_PORTIONS.length) % bibleService.TORAH_PORTIONS.length)}>
-            ← Previous
-          </button>
-          <button onClick={() => setPortionIndex(i => (i + 1) % bibleService.TORAH_PORTIONS.length)}>
-            Next →
-          </button>
-        </div>
-        {verse && (
-          <button className="dv-open" onClick={() => onOpenPassage(verse.portion)}>
-            Open passage ↗
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
+//       <div className="dv-footer">
+//         <div className="dv-nav">
+//           <button onClick={() => setPortionIndex(i => (i - 1 + bibleService.TORAH_PORTIONS.length) % bibleService.TORAH_PORTIONS.length)}>
+//             ← Previous
+//           </button>
+//           <button onClick={() => setPortionIndex(i => (i + 1) % bibleService.TORAH_PORTIONS.length)}>
+//             Next →
+//           </button>
+//         </div>
+//         {verse && (
+//           <button className="dv-open" onClick={() => onOpenPassage(verse.portion)}>
+//             Open passage ↗
+//           </button>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
 
 const styles = {
+  tab: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    padding: '0.75rem 2rem',
+    border: '2px solid #e0e0e0',
+    backgroundColor: '#f8f9fa',
+    color: '#495057',
+    borderRadius: '50px',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    fontWeight: '600',
+    transition: 'all 0.3s',
+    outline: 'none',
+  },
+  tabActive: {
+    backgroundColor: '#2c3e50',
+    color: '#fff',
+    borderColor: '#2c3e50',
+    transform: 'scale(1.05)',
+  },
   hebtime: {
     position: 'fixed',
   },

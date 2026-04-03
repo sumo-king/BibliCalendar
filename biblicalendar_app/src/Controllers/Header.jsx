@@ -18,10 +18,11 @@ export const Header = ({ matches, isDarkMode, setIsDarkMode, setCurrentView }) =
         borderBottomColor: isDarkMode ? '#d4af37' : '#d4af37'
       }}>
         <div style={styles.headerContent}>
+          {/* Logo */}
           <div style={styles.logoContainer}>
             <h1 style={styles.logoText}>BibliCalendar</h1>
           </div>
-
+          {/* Current Date */}
           <div style={styles.controls}>
             {matches && (
               <div style={{
@@ -44,6 +45,21 @@ export const Header = ({ matches, isDarkMode, setIsDarkMode, setCurrentView }) =
               }
             </button>
           </div>
+          
+          {/* Dark Mode Toggle */}
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            style={{
+              ...styles.themeToggle,
+              display: matches ? 'flex' : 'none',
+              backgroundColor: isDarkMode ? '#2c2c2c' : '#fff',
+              color: isDarkMode ? '#d4af37' : '#2c3e50'
+            }}
+            aria-label="Toggle Dark Mode"
+          >
+            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+
         </div>
       </header>
 
@@ -71,25 +87,25 @@ export const Header = ({ matches, isDarkMode, setIsDarkMode, setCurrentView }) =
           >
             <BookOpen size={20} strokeWidth={2.5} />
           <span>Bible</span>
-        </button>
-        <button
-          style={{display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: '0.5rem'}}
-          onClick={() => { setCurrentView(0); toggleMobileMenu(); }}
-        >
-          <Calendar1Icon size={20} strokeWidth={2.5} />
-          <span>Calendar</span>
-        </button>
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              style={{
-                ...styles.themeToggle,
-                backgroundColor: isDarkMode ? '#2c2c2c' : '#fff',
-                color: isDarkMode ? '#d4af37' : '#2c3e50'
-              }}
-              aria-label="Toggle Dark Mode"
-            >
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
+          </button>
+          <button
+            style={{display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: '0.5rem'}}
+            onClick={() => { setCurrentView(0); toggleMobileMenu(); }}
+          >
+            <Calendar1Icon size={20} strokeWidth={2.5} />
+            <span>Calendar</span>
+          </button>
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            style={{
+              ...styles.themeToggle,
+              backgroundColor: isDarkMode ? '#2c2c2c' : '#fff',
+              color: isDarkMode ? '#d4af37' : '#2c3e50'
+            }}
+            aria-label="Toggle Dark Mode"
+          >
+            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
         </div>
       </div>
     </>
