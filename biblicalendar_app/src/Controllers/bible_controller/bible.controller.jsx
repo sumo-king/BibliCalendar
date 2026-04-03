@@ -293,26 +293,6 @@ export default function BibleView({ matches, isDarkMode }) {
                         {suggestion}
                       </button>
                     </li>
-
-
-                    // <li
-                    //   key={index}
-                    //   onMouseDown={() => {           // onMouseDown fires before onBlur
-                    //     setSearchQuery(suggestion);
-                    //     setShowSuggestions(false);
-                    //   }}
-                      // style={{
-                      //   padding: '8px 12px',
-                      //   cursor: 'pointer',
-                      // }}
-                    //   onMouseEnter={e => e.currentTarget.style.backgroundColor = '#rgba(0,0,0,0.1)'}
-                    //   onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-                    // >
-                    //   {suggestion}
-                    // </li>
-
-
-
                   ))}
                 </ul>
               )}
