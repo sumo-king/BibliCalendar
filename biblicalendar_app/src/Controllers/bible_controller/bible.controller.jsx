@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  Search,
 } from 'lucide-react';
 import BibleService from "../../Services/bible.service";
 
@@ -266,15 +267,29 @@ export default function BibleView({ matches, isDarkMode }) {
           /> */}
           {/* Search bar */}
           <div style={matches ? styles.searchSection: {display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "center"}}>
-            <input
-              type="text"
-              placeholder="Search (e.g. John 3:16)"
-              value={searchQuery}
-              onChange={handleInputChange}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-              onKeyDown={handleSearch}
-              style={{ ...styles.searchInput, ...themeStyles.input, maxWidth: matches ? "100%" : "80%" }}
-            />
+            {/* Search Input */}
+            <div style={{...themeStyles.input, display: 'flex', alignItems: 'center', borderRadius: '4px', padding: '0.5rem'}}> 
+              <input
+                type="text"
+                placeholder="Search (e.g. John 3:16)"
+                value={searchQuery}
+                onChange={handleInputChange}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                onKeyDown={handleSearch}
+                style={{ ...styles.searchInput, ...themeStyles.input, maxWidth: matches ? "100%" : "80%", border: 'none' }}
+              />
+              <button
+              type="button"
+              onClick={handleSearch}
+              style={{
+                ...styles.searchButton,
+                backgroundColor: isDarkMode ? '#d4af37' : '#2c3e50',
+                color: isDarkMode ? '#1a1a1a' : '#fff'
+              }}
+            >
+              <Search size={20} />
+          </button>
+            </div>
             <div style={{ position: 'relative', width: '100%', marginTop: '0.5rem' }}>
               {showSuggestions && (
                 <ul style={{...styles.suggestionList, backgroundColor: themeStyles.input.backgroundColor, borderColor: themeStyles.input.borderColor, color: themeStyles.input.color}}>
@@ -317,7 +332,7 @@ export default function BibleView({ matches, isDarkMode }) {
               ))}
             </div>
           </div>
-          <button
+          {/* <button
               type="button"
               onClick={handleSearch}
               style={{
@@ -327,7 +342,7 @@ export default function BibleView({ matches, isDarkMode }) {
               }}
             >
               Search
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -681,10 +696,10 @@ const styles = {
     width: '97%',
   },
   searchInput: {
-    width: '80vw',
+    width: '50vw',
     padding: '0.75rem',
     borderRadius: '8px',
-    border: '1px solid #e0e0e0',
+    border: '1px solid ',
     fontSize: '1rem',
     fontWeight: '500',
     color: '#495057',
