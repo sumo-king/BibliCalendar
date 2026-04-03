@@ -94,12 +94,12 @@ export default function BibleView({ matches, isDarkMode }) {
   };
 
   // Search Handler
-  const handleSearch = async (e) => {
+  const handleSearch = async (e, overrideQuery) => {
     if (e.key === 'Enter' || e.type === 'click') {
       // Trim and validate input
       setBookChapters([]); // Reset chapter list on new search
       setBibleData(null) // Clear previous scripture on new search
-      const query = searchQuery.trim();
+      const query = (overrideQuery ?? searchQuery).trim()
       if (!query) return;
 
       // Clean up query
@@ -277,35 +277,42 @@ export default function BibleView({ matches, isDarkMode }) {
             />
             <div style={{ position: 'relative', width: '100%', marginTop: '0.5rem' }}>
               {showSuggestions && (
-                <ul style={{
-                  position: 'relative',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  backgroundColor: themeStyles.input.backgroundColor,
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  listStyle: 'none',
-                  margin: 0,
-                  padding: 0,
-                  zIndex: 1000,
-                }}>
+                <ul style={{...styles.suggestionList, backgroundColor: themeStyles.input.backgroundColor, borderColor: themeStyles.input.borderColor, color: themeStyles.input.color}}>
                   {suggestions.map((suggestion, index) => (
-                    <li
-                      key={index}
-                      onMouseDown={() => {           // onMouseDown fires before onBlur
-                        setSearchQuery(suggestion);
-                        setShowSuggestions(false);
-                      }}
-                      style={{
-                        padding: '8px 12px',
-                        cursor: 'pointer',
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#rgba(0,0,0,0.1)'}
-                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      {suggestion}
+                    <li key={index} style={{listStyle: 'none'}} >
+                      <button
+                        // key={index}
+                        style={{
+                          padding: '8px 12px',
+                          cursor: 'pointer',
+                        }}
+                        onClick={()=>{
+                          setSearchQuery(suggestion); 
+                          handleSearch({ type: 'click' }, suggestion); 
+                          setShowSuggestions(false);}}>
+                        {suggestion}
+                      </button>
                     </li>
+
+
+                    // <li
+                    //   key={index}
+                    //   onMouseDown={() => {           // onMouseDown fires before onBlur
+                    //     setSearchQuery(suggestion);
+                    //     setShowSuggestions(false);
+                    //   }}
+                      // style={{
+                      //   padding: '8px 12px',
+                      //   cursor: 'pointer',
+                      // }}
+                    //   onMouseEnter={e => e.currentTarget.style.backgroundColor = '#rgba(0,0,0,0.1)'}
+                    //   onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                    // >
+                    //   {suggestion}
+                    // </li>
+
+
+
                   ))}
                 </ul>
               )}
@@ -504,6 +511,18 @@ export default function BibleView({ matches, isDarkMode }) {
 // }
 
 const styles = {
+  suggestionList: {
+    position: 'relative',
+    top: '100%',
+    left: 0,
+    right: 0,
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    listStyle: 'none',
+    margin: 0,
+    padding: 0,
+    zIndex: 1000,
+  },
   tab: {
     display: 'flex',
     alignItems: 'center',
