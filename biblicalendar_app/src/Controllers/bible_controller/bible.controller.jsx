@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Loader2,
   Search,
+  Loader,
 } from 'lucide-react';
 import BibleService from "../../Services/bible.service";
 
@@ -14,7 +15,7 @@ export default function BibleView({ matches, isDarkMode }) {
   const [selectedBook, setSelectedBook] = useState('');
   const [selectedChapter, setSelectedChapter] = useState('');
   const [bibleData, setBibleData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [translation, setTranslation] = useState('web');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -287,7 +288,7 @@ export default function BibleView({ matches, isDarkMode }) {
                 color: isDarkMode ? '#1a1a1a' : '#fff'
               }}
             >
-              <Search size={20} />
+              {isLoading ? <Loader2 size={20} /> : <Search size={20} />}
           </button>
             </div>
             <div style={{ position: 'relative', width: '100%', marginTop: '0.5rem' }}>
@@ -378,14 +379,14 @@ export default function BibleView({ matches, isDarkMode }) {
           </div>
         )}
         {/* Loading Message */}
-        {loading && (
+        {isLoading && (
           <div style={styles.loadingBox}>
             <Loader2 size={40} style={styles.spin} />
             <p style={styles.loadingText}>Loading scripture...</p>
           </div>
         )}
         {/* Scripture Content */}
-        {bibleData && !loading && (
+        {bibleData && !isLoading && (
           <div style={styles.scriptureContent}>
             <h3 style={{ ...styles.reference, ...themeStyles.text }}>{bibleData.reference}</h3>
 
@@ -414,7 +415,7 @@ export default function BibleView({ matches, isDarkMode }) {
           </div>
         )}
 
-        {!bibleData && !loading && !error && (
+        {!bibleData && !isLoading && !error && (
           <div style={styles.emptyState}>
             <Book size={64} style={{ ...styles.emptyStateIcon, color: isDarkMode ? '#444' : 'inherit' }} />
             <p style={{ ...styles.emptyStateText, ...themeStyles.text }}>Select a passage</p>
