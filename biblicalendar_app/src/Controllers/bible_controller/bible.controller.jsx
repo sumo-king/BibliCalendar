@@ -6,7 +6,6 @@ import {
   ChevronRight,
   Loader2,
   Search,
-  Loader,
 } from 'lucide-react';
 import BibleService from "../../Services/bible.service";
 
