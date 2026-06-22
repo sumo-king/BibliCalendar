@@ -1,7 +1,8 @@
-import { BookOpen, Calendar1Icon, Menu, Moon, Sun, X } from 'lucide-react';
-import { HebDay } from "../Controllers/calendar_controllers/timedate.controller";
+import { BookOpen, Calendar1Icon } from 'lucide-react';
 import { useState } from 'react';
-
+import { Logo } from './header_controllers/logo';
+import { CurrentDate } from './header_controllers/current_date';
+import { ThemeToggle } from './header_controllers/theme';
 export const Header = ({ matches, isDarkMode, setIsDarkMode, setCurrentView }) => {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -19,47 +20,20 @@ export const Header = ({ matches, isDarkMode, setIsDarkMode, setCurrentView }) =
       }}>
         <div style={styles.headerContent}>
           {/* Logo */}
-          <div style={styles.logoContainer}>
-            <h1 style={styles.logoText}>BibliCalendar</h1>
-          </div>
+          <Logo/>
           {/* Current Date */}
-          <div style={styles.controls}>
-            {matches && (
-              <div style={{
-                ...styles.hebday,
-                backgroundColor: isDarkMode ? '#2c2c2c' : '#fff',
-                color: isDarkMode ? '#e0e0e0' : '#2c3e50'
-              }}>
-                <HebDay />
-              </div>
-            )}
-
-            <button
-              style={{...styles.menuButton, display: matches ? 'none' : 'flex'}}
-              onClick={toggleMobileMenu}
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen
-                ? <X style={{ width: '24px', height: '24px', color: '#fff' }} strokeWidth={2} />
-                : <Menu style={{ width: '24px', height: '24px', color: '#fff' }} strokeWidth={2} />
-              }
-            </button>
-          </div>
-          
+          <CurrentDate
+            matches={matches}
+            isDarkMode={isDarkMode}
+            mobileMenuOpen={mobileMenuOpen}
+            toggleMobileMenu={toggleMobileMenu}
+          />
           {/* Dark Mode Toggle */}
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            style={{
-              ...styles.themeToggle,
-              display: matches ? 'flex' : 'none',
-              backgroundColor: isDarkMode ? '#2c2c2c' : '#fff',
-              color: isDarkMode ? '#d4af37' : '#2c3e50'
-            }}
-            aria-label="Toggle Dark Mode"
-          >
-            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-
+          <ThemeToggle
+            isDarkMode={isDarkMode}
+            setIsDarkMode={setIsDarkMode}
+            matches={matches}
+          />
         </div>
       </header>
 
@@ -95,17 +69,11 @@ export const Header = ({ matches, isDarkMode, setIsDarkMode, setCurrentView }) =
             <Calendar1Icon size={20} strokeWidth={2.5} />
             <span>Calendar</span>
           </button>
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            style={{
-              ...styles.themeToggle,
-              backgroundColor: isDarkMode ? '#2c2c2c' : '#fff',
-              color: isDarkMode ? '#d4af37' : '#2c3e50'
-            }}
-            aria-label="Toggle Dark Mode"
-          >
-            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
+          <ThemeToggle
+            isDarkMode={isDarkMode}
+            setIsDarkMode={setIsDarkMode}
+            matches={true}
+          />
         </div>
       </div>
     </>
@@ -136,45 +104,11 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  logoContainer: {
-    paddingLeft: '2.5rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-  },
-  logoText: {
-    margin: 0,
-    color: '#fff',
-    fontSize: '2.75rem',
-    fontWeight: '300',
-    letterSpacing: '0.5px',
-  },
   controls: {
     display: 'flex',
     alignItems: 'center',
     gap: '1rem',
     marginLeft: 'auto',
-  },
-  menuButton: {
-    background: 'none',
-    border: 'none',
-    padding: '0.5rem',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'background-color 0.2s ease',
-  },
-  hebday: {
-    padding: '0.5rem 1rem',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    fontSize: '1rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    whiteSpace: 'nowrap',
   },
   overlay: {
     position: 'fixed',

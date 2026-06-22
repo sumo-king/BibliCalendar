@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { Body } from './Body';
+import { Body } from '../src/Body';
 
 // Mock child components
 jest.mock('./Controllers/bible_controller/bible.controller', () => {
