@@ -16,8 +16,6 @@ export const TraditionCal = ({ isDarkMode }) => {
   useEffect(() => {
     const hd = new HDate();
 
-    // console.log("Error CHECKING",hd.getMonthName() )
-
     setTradDate({
       day: hd.getDate(),
       month: hd.getMonth(),

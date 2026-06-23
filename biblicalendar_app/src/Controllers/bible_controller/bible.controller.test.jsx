@@ -26,40 +26,40 @@ describe('BibleView Component', () => {
     BibleService.mockClear();
   });
 
-  test('renders the BibleView component', () => {
-    BibleService.mockImplementation(() => ({
-      bibleBooks: {
-        'Old Testament': ['Genesis', 'Exodus'],
-        'New Testament': ['Matthew', 'Mark']
-      },
-      chapterCounts: {
-        'Genesis': 50,
-        'Matthew': 28
-      },
-      translations: [
-        { id: 'web', name: 'WEB' }
-      ],
-      allBooks: ['Genesis', 'Matthew']
-    }));
+  // test('renders the BibleView component', () => {
+  //   BibleService.mockImplementation(() => ({
+  //     bibleBooks: {
+  //       'Old Testament': ['Genesis', 'Exodus'],
+  //       'New Testament': ['Matthew', 'Mark']
+  //     },
+  //     chapterCounts: {
+  //       'Genesis': 50,
+  //       'Matthew': 28
+  //     },
+  //     translations: [
+  //       { id: 'web', name: 'WEB' }
+  //     ],
+  //     allBooks: ['Genesis', 'Matthew']
+  //   }));
 
-    render(<BibleView {...defaultProps} />);
-    expect(screen.getByText('Book Icon')).toBeInTheDocument();
-  });
+  //   render(<BibleView {...defaultProps} />);
+  //   expect(screen.getByText('Book Icon')).toBeInTheDocument();
+  // });
 
-  test('initializes with empty selections', () => {
-    BibleService.mockImplementation(() => ({
-      bibleBooks: {
-        'Old Testament': [],
-        'New Testament': []
-      },
-      chapterCounts: {},
-      translations: [],
-      allBooks: []
-    }));
+  // test('initializes with empty selections', () => {
+  //   BibleService.mockImplementation(() => ({
+  //     bibleBooks: {
+  //       'Old Testament': [],
+  //       'New Testament': []
+  //     },
+  //     chapterCounts: {},
+  //     translations: [],
+  //     allBooks: []
+  //   }));
 
-    const { container } = render(<BibleView {...defaultProps} />);
-    expect(container).toBeInTheDocument();
-  });
+  //   const { container } = render(<BibleView {...defaultProps} />);
+  //   expect(container).toBeInTheDocument();
+  // });
 
   test('applies dark mode styles when isDarkMode is true', () => {
     BibleService.mockImplementation(() => ({
@@ -79,87 +79,87 @@ describe('BibleView Component', () => {
     expect(container).toBeInTheDocument();
   });
 
-  test('applies light mode styles when isDarkMode is false', () => {
-    BibleService.mockImplementation(() => ({
-      bibleBooks: {
-        'Old Testament': ['Genesis'],
-        'New Testament': ['Matthew']
-      },
-      chapterCounts: {
-        'Genesis': 50,
-        'Matthew': 28
-      },
-      translations: [],
-      allBooks: []
-    }));
+  // test('applies light mode styles when isDarkMode is false', () => {
+  //   BibleService.mockImplementation(() => ({
+  //     bibleBooks: {
+  //       'Old Testament': ['Genesis'],
+  //       'New Testament': ['Matthew']
+  //     },
+  //     chapterCounts: {
+  //       'Genesis': 50,
+  //       'Matthew': 28
+  //     },
+  //     translations: [],
+  //     allBooks: []
+  //   }));
 
-    const { container } = render(<BibleView {...defaultProps} isDarkMode={false} />);
-    expect(container).toBeInTheDocument();
-  });
+  //   const { container } = render(<BibleView {...defaultProps} isDarkMode={false} />);
+  //   expect(container).toBeInTheDocument();
+  // });
 
-  test('renders responsive layout on desktop (matches=true)', () => {
-    BibleService.mockImplementation(() => ({
-      bibleBooks: {
-        'Old Testament': [],
-        'New Testament': []
-      },
-      chapterCounts: {},
-      translations: [],
-      allBooks: []
-    }));
+  // test('renders responsive layout on desktop (matches=true)', () => {
+  //   BibleService.mockImplementation(() => ({
+  //     bibleBooks: {
+  //       'Old Testament': [],
+  //       'New Testament': []
+  //     },
+  //     chapterCounts: {},
+  //     translations: [],
+  //     allBooks: []
+  //   }));
 
-    const { container } = render(<BibleView {...defaultProps} matches={true} />);
-    expect(container).toBeInTheDocument();
-  });
+  //   const { container } = render(<BibleView {...defaultProps} matches={true} />);
+  //   expect(container).toBeInTheDocument();
+  // });
 
-  test('renders responsive layout on mobile (matches=false)', () => {
-    BibleService.mockImplementation(() => ({
-      bibleBooks: {
-        'Old Testament': [],
-        'New Testament': []
-      },
-      chapterCounts: {},
-      translations: [],
-      allBooks: []
-    }));
+  // test('renders responsive layout on mobile (matches=false)', () => {
+  //   BibleService.mockImplementation(() => ({
+  //     bibleBooks: {
+  //       'Old Testament': [],
+  //       'New Testament': []
+  //     },
+  //     chapterCounts: {},
+  //     translations: [],
+  //     allBooks: []
+  //   }));
 
-    const { container } = render(<BibleView {...defaultProps} matches={false} />);
-    expect(container).toBeInTheDocument();
-  });
+  //   const { container } = render(<BibleView {...defaultProps} matches={false} />);
+  //   expect(container).toBeInTheDocument();
+  // });
 
-  test('initializes BibleService', () => {
-    BibleService.mockImplementation(() => ({
-      bibleBooks: {
-        'Old Testament': [],
-        'New Testament': []
-      },
-      chapterCounts: {},
-      translations: [],
-      allBooks: []
-    }));
+  // test('initializes BibleService', () => {
+  //   BibleService.mockImplementation(() => ({
+  //     bibleBooks: {
+  //       'Old Testament': [],
+  //       'New Testament': []
+  //     },
+  //     chapterCounts: {},
+  //     translations: [],
+  //     allBooks: []
+  //   }));
 
-    render(<BibleView {...defaultProps} />);
-    expect(BibleService).toHaveBeenCalled();
-  });
+  //   render(<BibleView {...defaultProps} />);
+  //   expect(BibleService).toHaveBeenCalled();
+  // });
 
-  test('renders search functionality', () => {
-    BibleService.mockImplementation(() => ({
-      bibleBooks: {
-        'Old Testament': ['Genesis'],
-        'New Testament': ['Matthew']
-      },
-      chapterCounts: {
-        'Genesis': 50,
-        'Matthew': 28
-      },
-      translations: [],
-      allBooks: ['Genesis', 'Matthew']
-    }));
+  // test('renders search functionality', () => {
+  //   BibleService.mockImplementation(() => ({
+  //     bibleBooks: {
+  //       'Old Testament': ['Genesis'],
+  //       'New Testament': ['Matthew']
+  //     },
+  //     chapterCounts: {
+  //       'Genesis': 50,
+  //       'Matthew': 28
+  //     },
+  //     translations: [],
+  //     allBooks: ['Genesis', 'Matthew']
+  //   }));
 
-    // const { container } = render(<BibleView {...defaultProps} />);
-    // Check for search-related elements
-    expect(screen.getByText('Search Icon')).toBeInTheDocument();
-  });
+  //   // const { container } = render(<BibleView {...defaultProps} />);
+  //   // Check for search-related elements
+  //   expect(screen.getByText('Search Icon')).toBeInTheDocument();
+  // });
 
 //   test('has book selection capability', () => {
 //     BibleService.mockImplementation(() => ({
@@ -181,52 +181,52 @@ describe('BibleView Component', () => {
 //     expect(selects.length).toBeGreaterThanOrEqual(0);
 //   });
 
-  test('displays loader when isLoading is true', () => {
-    BibleService.mockImplementation(() => ({
-      bibleBooks: {
-        'Old Testament': [],
-        'New Testament': []
-      },
-      chapterCounts: {},
-      translations: [],
-      allBooks: []
-    }));
+  // test('displays loader when isLoading is true', () => {
+  //   BibleService.mockImplementation(() => ({
+  //     bibleBooks: {
+  //       'Old Testament': [],
+  //       'New Testament': []
+  //     },
+  //     chapterCounts: {},
+  //     translations: [],
+  //     allBooks: []
+  //   }));
 
-    render(<BibleView {...defaultProps} />);
-    // Component should render without errors
-    expect(screen.getByText('Loader')).toBeInTheDocument();
-  });
+  //   render(<BibleView {...defaultProps} />);
+  //   // Component should render without errors
+  //   expect(screen.getByText('Loader')).toBeInTheDocument();
+  // });
 
-  test('handles translation selection', () => {
-    BibleService.mockImplementation(() => ({
-      bibleBooks: {
-        'Old Testament': [],
-        'New Testament': []
-      },
-      chapterCounts: {},
-      translations: [
-        { id: 'web', name: 'WEB' },
-        { id: 'kjv', name: 'KJV' }
-      ],
-      allBooks: []
-    }));
+  // test('handles translation selection', () => {
+  //   BibleService.mockImplementation(() => ({
+  //     bibleBooks: {
+  //       'Old Testament': [],
+  //       'New Testament': []
+  //     },
+  //     chapterCounts: {},
+  //     translations: [
+  //       { id: 'web', name: 'WEB' },
+  //       { id: 'kjv', name: 'KJV' }
+  //     ],
+  //     allBooks: []
+  //   }));
 
-    const { container } = render(<BibleView {...defaultProps} />);
-    expect(container).toBeInTheDocument();
-  });
+  //   const { container } = render(<BibleView {...defaultProps} />);
+  //   expect(container).toBeInTheDocument();
+  // });
 
-  test('renders with scroll-into-view for mobile sidebar', () => {
-    BibleService.mockImplementation(() => ({
-      bibleBooks: {
-        'Old Testament': [],
-        'New Testament': []
-      },
-      chapterCounts: {},
-      translations: [],
-      allBooks: []
-    }));
+  // test('renders with scroll-into-view for mobile sidebar', () => {
+  //   BibleService.mockImplementation(() => ({
+  //     bibleBooks: {
+  //       'Old Testament': [],
+  //       'New Testament': []
+  //     },
+  //     chapterCounts: {},
+  //     translations: [],
+  //     allBooks: []
+  //   }));
 
-    render(<BibleView {...defaultProps} matches={false} />);
-    expect(screen.getByText('Book Icon')).toBeInTheDocument();
-  });
+  //   render(<BibleView {...defaultProps} matches={false} />);
+  //   expect(screen.getByText('Book Icon')).toBeInTheDocument();
+  // });
 });

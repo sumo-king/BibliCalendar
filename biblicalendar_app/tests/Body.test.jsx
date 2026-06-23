@@ -2,13 +2,13 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Body } from '../src/Body';
 
 // Mock child components
-jest.mock('./Controllers/bible_controller/bible.controller', () => {
+jest.mock('../Controllers/bible_controller/bible.controller', () => {
   return function DummyBibleView() {
     return <div>Bible View</div>;
   };
 });
 
-jest.mock('./Views/calendar_view', () => {
+jest.mock('../Views/calendar_view', () => {
   return {
     CalendarView: function DummyCalendarView() {
       return <div>Calendar View</div>;
@@ -16,7 +16,7 @@ jest.mock('./Views/calendar_view', () => {
   };
 });
 
-jest.mock('./Views/LunarDetailView', () => {
+jest.mock('../Views/LunarDetailView', () => {
   return {
     LunarDetailView: function DummyLunarDetailView() {
       return <div>Lunar Detail View</div>;
@@ -24,7 +24,7 @@ jest.mock('./Views/LunarDetailView', () => {
   };
 });
 
-jest.mock('./Controllers/calendar_controllers/timedate.controller', () => {
+jest.mock('../Controllers/calendar_controllers/timedate.controller', () => {
   return {
     HebDay: function DummyHebDay() {
       return <div>Hebrew Day</div>;

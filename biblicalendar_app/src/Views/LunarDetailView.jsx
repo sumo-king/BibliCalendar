@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'; 
 import { Moon } from 'lunarphase-js';
 import {
     ArrowLeft,
@@ -70,13 +70,6 @@ export const LunarDetailView = ({ onBack, isDarkMode }) => {
             // zodiac: getMoonZodiac(age) // Simple approximation
         });
     }, []);
-
-    // Simple Zodiac approximation based on moon age (totally approximate for visual demo)
-    // const getMoonZodiac = (age) => {
-    //     const zodiacs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
-    //     const index = Math.floor((age / 29.53) * 12) % 12;
-    //     return zodiacs[index];
-    // };
 
     const theme = {
         bg: isDarkMode ? '#1a1a1a' : '#f6f5f0',
