@@ -1,4 +1,4 @@
-import { render, screen} from '@testing-library/react';
+import { render } from '@testing-library/react';
 import BibleView from './bible.controller';
 import BibleService from '../../Services/bible.service';
 
