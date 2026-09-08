@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Book,
   AlertTriangle,
@@ -6,6 +6,8 @@ import {
   ChevronRight,
   Loader2,
   Search,
+  Sparkles,
+  CalendarDays,
 } from 'lucide-react';
 import BibleService from "../../Services/bible.service";
 
@@ -73,7 +75,7 @@ export default function BibleView({ matches, isDarkMode }) {
     }
   };
 
-  const bibleService = new BibleService();
+  const bibleService = useMemo(() => new BibleService(), []);
 
   const fetchScripture = async (book, chapter, verse = '') => {
     setLoading(true);
@@ -207,6 +209,13 @@ export default function BibleView({ matches, isDarkMode }) {
   return (
     <div style={styles.bibleContainer}>
 
+      {/* Verse of the Day / Week */}
+      <DailyVerseCard
+        bibleService={bibleService}
+        translation={translation}
+        isDarkMode={isDarkMode}
+      />
+
       {/* Navigation Arrows */}
       {selectedBook && selectedChapter && !isSidebarOpen && (
         <>
@@ -257,14 +266,6 @@ export default function BibleView({ matches, isDarkMode }) {
         
         {/* Scripture Selection Section */}
         <div style={matches?styles.selectionBody: {display: "flex", flexDirection: "column", gap: "1rem", alignItems: "center", padding: "2rem 2rem"}}>
-          {/* <DailyVerseCard
-            fetchScripture={fetchScripture}
-            onOpenPassage={(portion) => {
-              setSearchQuery(portion.ref);   // populate your search field
-              handleSearch(portion.book, portion.chapter); // trigger your existing search
-            }}
-            bibleService={bibleService}
-          /> */}
           {/* Search bar */}
           <div style={matches ? styles.searchSection: {display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "center"}}>
             {/* Search Input */}
@@ -427,85 +428,225 @@ export default function BibleView({ matches, isDarkMode }) {
 }
 
 
-// function DailyVerseCard({ fetchScripture, onOpenPassage, bibleService }) {
-//   const [portionIndex, setPortionIndex] = useState(bibleService.getPortionIndexForDate(new Date()));
-//   const [verse, setVerse] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(false);
+function DailyVerseCard({ bibleService, translation, isDarkMode }) {
+  const [mode, setMode] = useState(() => {
+    try {
+      return localStorage.getItem('votdMode') === 'weekly' ? 'weekly' : 'daily';
+    } catch {
+      return 'daily';
+    }
+  });
+  const [verse, setVerse] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-//   useEffect(() => {
+  const entry = useMemo(
+    () => (typeof bibleService.getVerseOfDay === 'function'
+      ? bibleService.getVerseOfDay(new Date(), mode)
+      : null),
+    [bibleService, mode]
+  );
 
-//     async function loadVerse(index) {
-//     const portion = bibleService.TORAH_PORTIONS[index];
-//     setLoading(true);
-//     setError(false);
-//     try {
-//       const data = await fetchScripture(portion.book, portion.chapter, '', 'web');
-//       const first = data.verses?.[0];
-//       setVerse({
-//         text: first?.text?.trim() ?? data.text?.trim(),
-//         verseNum: first?.verse ?? 1,
-//         portion,
-//       });
-//     } catch {
-//       setError(true);
-//     } finally {
-//       setLoading(false);
-//     }
-//     }
+  useEffect(() => {
+    try {
+      localStorage.setItem('votdMode', mode);
+    } catch {
+      /* ignore storage errors */
+    }
+  }, [mode]);
 
-//     loadVerse(portionIndex);
-//   }, [portionIndex, fetchScripture, bibleService]);
+  useEffect(() => {
+    if (!entry) return;
 
-  
+    let active = true;
+    setLoading(true);
+    setError(false);
 
-//   const today = new Date().toLocaleDateString('en-US', {
-//     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-//   });
+    bibleService
+      .fetchScripture(entry.book, entry.chapter, entry.verse, translation)
+      .then((data) => {
+        if (!active) return;
+        setVerse({
+          text: (data.text || '').replace(/\s+/g, ' ').trim(),
+          reference: data.reference || entry.reference,
+          translationName: data.translation_name || '',
+        });
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setError(true);
+        setLoading(false);
+      });
 
-//   return (
-//     <div className="daily-verse-card">
-//       <div className="dv-header">
-//         <div className="dv-label">
-//           <div className="dv-icon">📖</div>
-//           <div>
-//             <div className="dv-title">Daily Torah Portion</div>
-//             <div className="dv-subtitle">{today}</div>
-//           </div>
-//         </div>
-//         <span className="dv-badge">{bibleService.TORAH_PORTIONS[portionIndex].name}</span>
-//       </div>
+    return () => {
+      active = false;
+    };
+  }, [bibleService, entry, translation]);
 
-//       {loading && <p className="dv-loading">Fetching verse…</p>}
-//       {error && <p className="dv-error">Could not load verse. Check your connection.</p>}
-//       {!loading && !error && verse && (
-//         <>
-//           <div className="dv-ref">{verse.portion.ref}:{verse.verseNum} (WEB)</div>
-//           <blockquote className="dv-verse">{verse.text}</blockquote>
-//           <div className="dv-portion">Parashat {verse.portion.name} · {verse.portion.ref}</div>
-//         </>
-//       )}
+  if (!entry) return null;
 
-//       <div className="dv-footer">
-//         <div className="dv-nav">
-//           <button onClick={() => setPortionIndex(i => (i - 1 + bibleService.TORAH_PORTIONS.length) % bibleService.TORAH_PORTIONS.length)}>
-//             ← Previous
-//           </button>
-//           <button onClick={() => setPortionIndex(i => (i + 1) % bibleService.TORAH_PORTIONS.length)}>
-//             Next →
-//           </button>
-//         </div>
-//         {verse && (
-//           <button className="dv-open" onClick={() => onOpenPassage(verse.portion)}>
-//             Open passage ↗
-//           </button>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
+  const accent = isDarkMode ? '#d4af37' : '#2c3e50';
+  const onAccent = isDarkMode ? '#1a1a1a' : '#fff';
+  const cardStyle = {
+    ...styles.dvCard,
+    backgroundColor: isDarkMode ? '#2c2c2c' : '#fff',
+    borderColor: isDarkMode ? '#444' : '#f0f0f0',
+    color: isDarkMode ? '#e0e0e0' : '#2c3e50',
+  };
+  const subText = { color: isDarkMode ? '#aaa' : '#6c757d' };
+
+  const isWeekly = mode === 'weekly';
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  });
+
+  const modeButton = (value, label, Icon) => {
+    const active = mode === value;
+    return (
+      <button
+        type="button"
+        onClick={() => setMode(value)}
+        aria-pressed={active}
+        style={{
+          ...styles.dvToggleButton,
+          color: active ? onAccent : (isDarkMode ? '#aaa' : '#6c757d'),
+          backgroundColor: active ? accent : 'transparent',
+        }}
+      >
+        <Icon size={14} strokeWidth={2.5} />
+        {label}
+      </button>
+    );
+  };
+
+  return (
+    <div style={cardStyle}>
+      <div style={styles.dvHeader}>
+        <div style={styles.dvHeaderLeft}>
+          <Sparkles size={22} style={{ color: accent, flexShrink: 0 }} />
+          <div>
+            <h2 style={styles.dvTitle}>
+              {isWeekly ? 'Verse of the Week' : 'Verse of the Day'}
+            </h2>
+            <p style={{ ...styles.dvSubtitle, ...subText }}>{today}</p>
+          </div>
+        </div>
+        <div
+          style={{
+            ...styles.dvToggle,
+            borderColor: isDarkMode ? '#444' : '#e0e0e0',
+          }}
+        >
+          {modeButton('daily', 'Day', Sparkles)}
+          {modeButton('weekly', 'Week', CalendarDays)}
+        </div>
+      </div>
+
+      {loading && (
+        <div style={{ ...styles.dvStatus, ...subText }}>
+          <Loader2 size={18} style={styles.spin} />
+          <span>Loading verse…</span>
+        </div>
+      )}
+
+      {error && !loading && (
+        <div style={{ ...styles.dvStatus, color: '#c0392b' }}>
+          <AlertTriangle size={18} />
+          <span>Couldn&apos;t load {entry.reference}. Check your connection.</span>
+        </div>
+      )}
+
+      {verse && !loading && !error && (
+        <>
+          <blockquote style={styles.dvVerseText}>“{verse.text}”</blockquote>
+          <div>
+            <span style={{ ...styles.dvReference, color: accent }}>
+              {verse.reference}
+            </span>
+            {verse.translationName && (
+              <span style={{ ...styles.dvTranslation, ...subText }}>
+                {verse.translationName}
+              </span>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 const styles = {
+  dvCard: {
+    borderRadius: '12px',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+    border: '1px solid',
+    padding: '1.5rem',
+    marginBottom: '2rem',
+  },
+  dvHeader: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: '1rem',
+    flexWrap: 'wrap',
+    marginBottom: '1.25rem',
+  },
+  dvHeaderLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+  },
+  dvTitle: {
+    margin: 0,
+    fontSize: '1.15rem',
+    fontWeight: 700,
+    letterSpacing: '-0.3px',
+  },
+  dvSubtitle: {
+    margin: 0,
+    fontSize: '0.8rem',
+  },
+  dvToggle: {
+    display: 'flex',
+    borderRadius: '50px',
+    overflow: 'hidden',
+    border: '1px solid',
+    flexShrink: 0,
+  },
+  dvToggleButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.35rem',
+    padding: '0.35rem 0.85rem',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+  dvVerseText: {
+    fontFamily: 'Georgia, serif',
+    fontSize: '1.2rem',
+    lineHeight: 1.8,
+    fontStyle: 'italic',
+    margin: '0 0 1rem 0',
+  },
+  dvReference: {
+    fontWeight: 700,
+    fontSize: '0.95rem',
+  },
+  dvTranslation: {
+    fontSize: '0.8rem',
+    marginLeft: '0.5rem',
+  },
+  dvStatus: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    fontSize: '0.9rem',
+    padding: '0.5rem 0',
+  },
   suggestionList: {
     position: 'relative',
     top: '100%',

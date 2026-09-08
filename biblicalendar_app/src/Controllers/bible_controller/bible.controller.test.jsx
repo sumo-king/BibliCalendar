@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import BibleView from './bible.controller';
 import BibleService from '../../Services/bible.service';
 
@@ -13,6 +13,8 @@ jest.mock('lucide-react', () => ({
   ChevronRight: () => <div>Chevron Right</div>,
   Loader2: () => <div>Loader</div>,
   Search: () => <div>Search Icon</div>,
+  Sparkles: () => <div>Sparkles Icon</div>,
+  CalendarDays: () => <div>Calendar Days Icon</div>,
 }));
 
 describe('BibleView Component', () => {
@@ -61,7 +63,7 @@ describe('BibleView Component', () => {
   //   expect(container).toBeInTheDocument();
   // });
 
-  test('applies dark mode styles when isDarkMode is true', () => {
+  test('applies dark mode styles when isDarkMode is true', async () => {
     BibleService.mockImplementation(() => ({
       bibleBooks: {
         'Old Testament': ['Genesis'],
@@ -72,11 +74,22 @@ describe('BibleView Component', () => {
         'Matthew': 28
       },
       translations: [],
-      allBooks: []
+      allBooks: [],
+      getVerseOfDay: () => ({
+        book: 'Genesis', chapter: 1, verse: '1', index: 0, mode: 'daily',
+        reference: 'Genesis 1:1'
+      }),
+      fetchScripture: jest.fn().mockResolvedValue({
+        text: 'In the beginning...',
+        reference: 'Genesis 1:1',
+        translation_name: 'World English Bible'
+      })
     }));
 
     const { container } = render(<BibleView {...defaultProps} isDarkMode={true} />);
     expect(container).toBeInTheDocument();
+    // Verse of the Day resolves asynchronously; wait for it to settle
+    expect(await screen.findByText(/In the beginning/)).toBeInTheDocument();
   });
 
   // test('applies light mode styles when isDarkMode is false', () => {
