@@ -151,6 +151,89 @@ describe('BibleService', () => {
     });
   });
 
+  describe('VERSES_OF_THE_DAY', () => {
+    test('is a non-empty array', () => {
+      expect(Array.isArray(bibleService.VERSES_OF_THE_DAY)).toBe(true);
+      expect(bibleService.VERSES_OF_THE_DAY.length).toBeGreaterThan(300);
+    });
+
+    test('every entry has book, chapter and verse', () => {
+      bibleService.VERSES_OF_THE_DAY.forEach(entry => {
+        expect(typeof entry.book).toBe('string');
+        expect(typeof entry.chapter).toBe('number');
+        expect(typeof entry.verse).toBe('string');
+      });
+    });
+
+    test('starts in the Old Testament and ends in the New Testament', () => {
+      const list = bibleService.VERSES_OF_THE_DAY;
+      expect(list[0].book).toBe('Genesis');
+      expect(list[list.length - 1].book).toBe('Revelation');
+    });
+
+    test('only references real books with valid chapter numbers', () => {
+      bibleService.VERSES_OF_THE_DAY.forEach(entry => {
+        const maxChapter = bibleService.chapterCounts[entry.book];
+        expect(maxChapter).toBeDefined();
+        expect(entry.chapter).toBeGreaterThanOrEqual(1);
+        expect(entry.chapter).toBeLessThanOrEqual(maxChapter);
+      });
+    });
+  });
+
+  describe('getVerseOfDay', () => {
+    test('returns a curated entry with a reference string', () => {
+      const result = bibleService.getVerseOfDay(new Date(2026, 0, 1), 'daily');
+      expect(result).toHaveProperty('book');
+      expect(result).toHaveProperty('chapter');
+      expect(result).toHaveProperty('verse');
+      expect(result.reference).toBe(`${result.book} ${result.chapter}:${result.verse}`);
+    });
+
+    test('is deterministic for the same date and mode', () => {
+      const a = bibleService.getVerseOfDay(new Date(2026, 5, 15), 'daily');
+      const b = bibleService.getVerseOfDay(new Date(2026, 5, 15), 'daily');
+      expect(a.index).toBe(b.index);
+    });
+
+    test('advances through the year from Genesis toward Revelation', () => {
+      const jan = bibleService.getVerseOfDay(new Date(2026, 0, 2), 'daily');
+      const dec = bibleService.getVerseOfDay(new Date(2026, 11, 30), 'daily');
+      expect(jan.index).toBeLessThan(dec.index);
+      expect(jan.book).toBe('Genesis');
+      expect(dec.book).toBe('Revelation');
+    });
+
+    test('weekly mode is stable across days of the same 7-day block', () => {
+      // Both dates fall in the same 7-day block counted from Jan 1
+      const early = bibleService.getVerseOfDay(new Date(2026, 5, 12), 'weekly');
+      const late = bibleService.getVerseOfDay(new Date(2026, 5, 16), 'weekly');
+      expect(early.index).toBe(late.index);
+    });
+
+    test('weekly mode changes between adjacent blocks', () => {
+      const blockA = bibleService.getVerseOfDay(new Date(2026, 5, 12), 'weekly');
+      const blockB = bibleService.getVerseOfDay(new Date(2026, 5, 26), 'weekly');
+      expect(blockA.index).not.toBe(blockB.index);
+    });
+
+    test('weekly and daily can differ', () => {
+      const daily = bibleService.getVerseOfDay(new Date(2026, 8, 8), 'daily');
+      const weekly = bibleService.getVerseOfDay(new Date(2026, 8, 8), 'weekly');
+      expect(typeof daily.index).toBe('number');
+      expect(typeof weekly.index).toBe('number');
+    });
+
+    test('index always stays within the list bounds', () => {
+      const len = bibleService.VERSES_OF_THE_DAY.length;
+      for (let month = 0; month < 12; month++) {
+        const r = bibleService.getVerseOfDay(new Date(2026, month, 28), 'daily');
+        expect(r.index).toBeGreaterThanOrEqual(0);
+        expect(r.index).toBeLessThan(len);
+      }
+    });
+  });
+
   describe('bibleBooks', () => {
     test('has Old Testament books', () => {
       expect(bibleService.bibleBooks['Old Testament']).toBeDefined();
