@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import BibleView from './bible.controller';
 import BibleService from '../../Services/bible.service';
 
@@ -15,6 +15,10 @@ jest.mock('lucide-react', () => ({
   Search: () => <div>Search Icon</div>,
   Sparkles: () => <div>Sparkles Icon</div>,
   CalendarDays: () => <div>Calendar Days Icon</div>,
+  ChevronDown: () => <div>Chevron Down</div>,
+  Bookmark: () => <div>Bookmark Icon</div>,
+  BookmarkCheck: () => <div>Bookmark Check Icon</div>,
+  X: () => <div>X Icon</div>,
 }));
 
 describe('BibleView Component', () => {
@@ -242,4 +246,95 @@ describe('BibleView Component', () => {
   //   render(<BibleView {...defaultProps} matches={false} />);
   //   expect(screen.getByText('Book Icon')).toBeInTheDocument();
   // });
+  test('persists highlighted verses to localStorage and restores them', async () => {
+    localStorage.clear();
+    const chapter = {
+      reference: 'John 3',
+      verses: [
+        { book_name: 'John', chapter: 3, verse: 16, text: 'For God so loved the world' },
+        { book_name: 'John', chapter: 3, verse: 17, text: 'For God sent not his Son' },
+      ],
+    };
+    BibleService.mockImplementation(() => ({
+      chapterCounts: { John: 21 },
+      translations: [],
+      allBooks: ['John'],
+      fetchScripture: jest.fn().mockResolvedValue(chapter),
+    }));
+
+    const { unmount } = render(<BibleView {...defaultProps} />);
+    const input = screen.getByPlaceholderText(/Search/);
+    fireEvent.change(input, { target: { value: 'John 3' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    fireEvent.click(await screen.findByText('For God so loved the world'));
+
+    expect(JSON.parse(localStorage.getItem('highlightedVerses'))['John|3'].verses).toEqual([16]);
+    // Highlights are listed in the My Verses sidebar
+    fireEvent.click(screen.getByLabelText('Open saved verses and highlights'));
+    expect(screen.getByLabelText('My verses')).toHaveAttribute('aria-hidden', 'false');
+    expect(screen.getByText('John 3:16')).toBeInTheDocument();
+
+    // Highlights survive a remount
+    unmount();
+    render(<BibleView {...defaultProps} />);
+    expect(screen.getByText('1')).toBeInTheDocument(); // badge count on the sidebar toggle
+    expect(screen.getByText('John 3:16')).toBeInTheDocument();
+  });
+
+  test('sidebar opens, shows empty states, and closes with Escape', () => {
+    localStorage.clear();
+    BibleService.mockImplementation(() => ({
+      chapterCounts: {},
+      translations: [],
+      allBooks: [],
+      fetchScripture: jest.fn().mockResolvedValue({ reference: '', verses: [] }),
+    }));
+
+    render(<BibleView {...defaultProps} />);
+    const sidebar = screen.getByLabelText('My verses');
+    expect(sidebar).toHaveAttribute('aria-hidden', 'true');
+
+    fireEvent.click(screen.getByLabelText('Open saved verses and highlights'));
+    expect(sidebar).toHaveAttribute('aria-hidden', 'false');
+    expect(screen.getByText(/bookmark next to a passage title/)).toBeInTheDocument();
+    expect(screen.getByText(/Tap any verse while reading/)).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(sidebar).toHaveAttribute('aria-hidden', 'true');
+  });
+  test('daily verse card collapses, remembers it, and shows the reference', async () => {
+    localStorage.clear();
+    BibleService.mockImplementation(() => ({
+      chapterCounts: {},
+      translations: [],
+      allBooks: [],
+      getVerseOfDay: () => ({
+        book: 'Genesis', chapter: 1, verse: '1', index: 0, mode: 'daily',
+        reference: 'Genesis 1:1'
+      }),
+      fetchScripture: jest.fn().mockResolvedValue({
+        text: 'In the beginning...',
+        reference: 'Genesis 1:1',
+      }),
+    }));
+
+    const { unmount } = render(<BibleView {...defaultProps} />);
+    expect(await screen.findByText(/In the beginning/)).toBeInTheDocument();
+
+    const toggle = screen.getByRole('button', { name: /Verse of the Day/ });
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText(/In the beginning/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Week')).not.toBeInTheDocument();
+    expect(screen.getByText('Genesis 1:1')).toBeInTheDocument(); // reference stays in the header
+    expect(JSON.parse(localStorage.getItem('votdCollapsed'))).toBe(true);
+
+    // Stays collapsed after a remount
+    unmount();
+    render(<BibleView {...defaultProps} />);
+    expect(await screen.findByRole('button', { name: /Verse of the Day/ })).toHaveAttribute('aria-expanded', 'false');
+  });
 });
