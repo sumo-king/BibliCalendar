@@ -1,0 +1,41 @@
+# Netlify reads this file from the repository root.
+# All paths below are relative to `base`.
+
+[build]
+  base = "biblicalendar_app"
+  command = "npm run build"
+  publish = "build"
+
+[build.environment]
+  # Match the Node version used in GitHub Actions
+  NODE_VERSION = "20"
+
+# Single-page app: serve index.html for any path that isn't a real file
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Hashed build assets never change, so cache them forever
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Always revalidate the HTML shell and manifest so new deploys show up immediately
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"

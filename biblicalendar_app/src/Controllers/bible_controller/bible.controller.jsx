@@ -8,11 +8,18 @@ import {
   Search,
   Sparkles,
   CalendarDays,
+  ChevronDown,
+  Bookmark,
+  BookmarkCheck,
+  X,
 } from 'lucide-react';
 import BibleService from "../../Services/bible.service";
+import { useLocalStorage } from "../../Hooks/useLocalStorageHook";
 
 export default function BibleView({ matches, isDarkMode }) {
 
+  const [savedVerses, setSavedVerses] = useLocalStorage('savedVerses', []);
+  const [currentPassage, setCurrentPassage] = useState(null);
   const [selectedBook, setSelectedBook] = useState('');
   const [selectedChapter, setSelectedChapter] = useState('');
   const [bibleData, setBibleData] = useState(null);
@@ -20,7 +27,8 @@ export default function BibleView({ matches, isDarkMode }) {
   const [error, setError] = useState(null);
   const [translation, setTranslation] = useState('web');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [highlightedVerses, setHighlightedVerses] = useState(new Set());
+  // { "Book|chapter": { book, chapter, verses: [verseNumber, ...] } }
+  const [highlights, setHighlights] = useLocalStorage('highlightedVerses', {});
   const [searchQuery, setSearchQuery] = useState('');
   const [bookChapters, setBookChapters] = useState([]);
 
@@ -80,13 +88,13 @@ export default function BibleView({ matches, isDarkMode }) {
   const fetchScripture = async (book, chapter, verse = '') => {
     setLoading(true);
     setError(null);
-    setHighlightedVerses(new Set());
 
     try {
       const response = await bibleService.fetchScripture(book, chapter, verse, translation);
 
       const data = await response;
       setBibleData(data);
+      setCurrentPassage({ book, chapter: String(chapter), verse: verse ? String(verse) : '', translation });
       if (!matches) setIsSidebarOpen(false);
     } catch (err) {
       setError(err.message);
@@ -191,23 +199,239 @@ export default function BibleView({ matches, isDarkMode }) {
 
     setSelectedChapter(String(newChapter));
     // setSelectedVerse('');
-    setHighlightedVerses(new Set()); // Reset highlights
 
     await fetchScripture(selectedBook, String(newChapter), '');
   };
 
-  const toggleHighlight = (index) => {
-    const newHighlights = new Set(highlightedVerses);
-    if (newHighlights.has(index)) {
-      newHighlights.delete(index);
-    } else {
-      newHighlights.add(index);
+  // -- Saved verses (persisted in localStorage) --
+  const passageId = (p) => `${p.book}|${p.chapter}|${p.verse}|${p.translation}`;
+  const currentId = currentPassage ? passageId(currentPassage) : null;
+  const isCurrentSaved = !!currentId && savedVerses.some(v => v.id === currentId);
+
+  const toggleSaveCurrent = () => {
+    if (!currentPassage || !bibleData) return;
+    if (isCurrentSaved) {
+      setSavedVerses(prev => prev.filter(v => v.id !== currentId));
+      return;
     }
-    setHighlightedVerses(newHighlights);
+    setSavedVerses(prev => [
+      {
+        id: currentId,
+        ...currentPassage,
+        reference: bibleData.reference,
+        savedAt: new Date().toISOString(),
+      },
+      ...prev,
+    ]);
+  };
+
+  const removeSaved = (id) => {
+    setSavedVerses(prev => prev.filter(v => v.id !== id));
+  };
+
+  const openPassage = async ({ book, chapter, verse = '', translation: trans = translation }) => {
+    setBookChapters([]);
+    setSelectedBook(book);
+    setSelectedChapter(String(chapter));
+    setTranslation(trans);
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await bibleService.fetchScripture(book, chapter, verse, trans);
+      setBibleData(data);
+      setCurrentPassage({ book, chapter: String(chapter), verse, translation: trans });
+    } catch (err) {
+      setError(err.message);
+      setBibleData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // -- Highlights (persisted in localStorage, keyed by book + chapter so they
+  // show up in any translation and in both chapter and single-verse views) --
+  const chapterKey = (book, chapter) => `${book}|${chapter}`;
+
+  const verseKey = (verse) => {
+    if (!currentPassage) return null;
+    return chapterKey(currentPassage.book, verse.chapter ?? currentPassage.chapter);
+  };
+
+  const isHighlighted = (verse) => {
+    const key = verseKey(verse);
+    return !!key && !!highlights[key]?.verses.includes(verse.verse);
+  };
+
+  const toggleHighlight = (verse) => {
+    const key = verseKey(verse);
+    if (!key) return;
+    setHighlights(prev => {
+      const entry = prev[key];
+      const current = entry?.verses ?? [];
+      const verses = current.includes(verse.verse)
+        ? current.filter(v => v !== verse.verse)
+        : [...current, verse.verse].sort((a, b) => a - b);
+
+      const next = { ...prev };
+      if (verses.length === 0) {
+        delete next[key];
+      } else {
+        next[key] = {
+          book: currentPassage.book,
+          chapter: String(verse.chapter ?? currentPassage.chapter),
+          verses,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return next;
+    });
+  };
+
+  const clearChapterHighlights = (key) => {
+    setHighlights(prev => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  const highlightList = Object.entries(highlights)
+    .sort(([, a], [, b]) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
+
+  // -- My Verses sidebar --
+  const storedCount = savedVerses.length + highlightList.length;
+
+  useEffect(() => {
+    if (!isSidebarOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setIsSidebarOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isSidebarOpen]);
+
+  const openFromSidebar = (passage) => {
+    setIsSidebarOpen(false);
+    openPassage(passage);
   };
 
   return (
     <div style={styles.bibleContainer}>
+
+      {/* My Verses toggle */}
+      {!isSidebarOpen && (
+        <button
+          type="button"
+          onClick={() => setIsSidebarOpen(true)}
+          aria-label="Open saved verses and highlights"
+          title="My verses"
+          style={{ ...styles.sidebarToggle, ...themeStyles.menuToggle }}
+        >
+          <Bookmark size={22} />
+          {storedCount > 0 && (
+            <span style={{ ...styles.sidebarBadge, borderColor: themeStyles.menuToggle.backgroundColor }}>
+              {storedCount}
+            </span>
+          )}
+        </button>
+      )}
+
+      {/* My Verses sidebar */}
+      {isSidebarOpen && <div style={styles.overlay} onClick={() => setIsSidebarOpen(false)} />}
+      <aside
+        aria-label="My verses"
+        aria-hidden={!isSidebarOpen}
+        style={{
+          ...styles.sidebar,
+          ...themeStyles.card,
+          ...(isSidebarOpen ? styles.sidebarOpen : {}),
+        }}
+      >
+        <div style={{ ...styles.sidebarHeader, borderBottomColor: themeStyles.card.borderColor }}>
+          <h2 style={{ ...styles.cardHeading, ...themeStyles.text }}>My Verses</h2>
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(false)}
+            aria-label="Close saved verses"
+            style={{ ...styles.sidebarIconButton, ...themeStyles.subText }}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div style={styles.sidebarBody}>
+          {/* Saved Verses */}
+          <section style={styles.sidebarSection}>
+            <label style={styles.sectionLabel}>Saved verses</label>
+            {savedVerses.length === 0 ? (
+              <p style={{ ...styles.sidebarEmpty, ...themeStyles.subText }}>
+                Tap the bookmark next to a passage title to save it here.
+              </p>
+            ) : (
+              <ul style={styles.sidebarList}>
+                {savedVerses.map(saved => (
+                  <li key={saved.id} style={{ ...styles.sidebarItem, borderColor: themeStyles.card.borderColor }}>
+                    <button
+                      type="button"
+                      onClick={() => openFromSidebar(saved)}
+                      style={{ ...styles.sidebarItemButton, ...themeStyles.text }}
+                    >
+                      <span style={styles.sidebarItemTitle}>{saved.reference}</span>
+                      <span style={{ ...styles.sidebarItemMeta, ...themeStyles.subText }}>
+                        {saved.translation.toUpperCase()}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeSaved(saved.id)}
+                      aria-label={`Remove ${saved.reference}`}
+                      style={{ ...styles.sidebarIconButton, ...themeStyles.subText }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* Highlighted Verses */}
+          <section style={styles.sidebarSection}>
+            <label style={styles.sectionLabel}>Highlights</label>
+            {highlightList.length === 0 ? (
+              <p style={{ ...styles.sidebarEmpty, ...themeStyles.subText }}>
+                Tap any verse while reading to highlight it.
+              </p>
+            ) : (
+              <ul style={styles.sidebarList}>
+                {highlightList.map(([key, entry]) => (
+                  <li key={key} style={{ ...styles.sidebarItem, borderColor: themeStyles.card.borderColor }}>
+                    <span style={{ ...styles.highlightSwatch, ...themeStyles.highlight }} />
+                    <button
+                      type="button"
+                      onClick={() => openFromSidebar({ book: entry.book, chapter: entry.chapter })}
+                      style={{ ...styles.sidebarItemButton, ...themeStyles.text }}
+                    >
+                      <span style={styles.sidebarItemTitle}>{entry.book} {entry.chapter}:{entry.verses.join(', ')}</span>
+                      <span style={{ ...styles.sidebarItemMeta, ...themeStyles.subText }}>
+                        {entry.verses.length} {entry.verses.length === 1 ? 'verse' : 'verses'}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => clearChapterHighlights(key)}
+                      aria-label={`Clear highlights in ${entry.book} ${entry.chapter}`}
+                      style={{ ...styles.sidebarIconButton, ...themeStyles.subText }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
+      </aside>
 
       {/* Verse of the Day / Week */}
       <DailyVerseCard
@@ -388,7 +612,19 @@ export default function BibleView({ matches, isDarkMode }) {
         {/* Scripture Content */}
         {bibleData && !isLoading && (
           <div style={styles.scriptureContent}>
-            <h3 style={{ ...styles.reference, ...themeStyles.text }}>{bibleData.reference}</h3>
+            <div style={styles.referenceRow}>
+              <h3 style={{ ...styles.reference, ...themeStyles.text }}>{bibleData.reference}</h3>
+              <button
+                type="button"
+                onClick={toggleSaveCurrent}
+                aria-pressed={isCurrentSaved}
+                aria-label={isCurrentSaved ? 'Remove from saved verses' : 'Save verse'}
+                title={isCurrentSaved ? 'Remove from saved verses' : 'Save verse'}
+                style={{ ...styles.saveButton, ...themeStyles.icon }}
+              >
+                {isCurrentSaved ? <BookmarkCheck size={22} /> : <Bookmark size={22} />}
+              </button>
+            </div>
 
             <div style={styles.versesContainer}>
               {bibleData.verses.map((verse, index) => (
@@ -396,9 +632,9 @@ export default function BibleView({ matches, isDarkMode }) {
                   key={index}
                   style={{
                     ...styles.verseBlock,
-                    ...(highlightedVerses.has(index) ? themeStyles.highlight : {})
+                    ...(isHighlighted(verse) ? themeStyles.highlight : {})
                   }}
-                  onClick={() => toggleHighlight(index)}
+                  onClick={() => toggleHighlight(verse)}
                 >
                   <span style={{ ...styles.verseNumber, ...themeStyles.verseNumber }}>{verse.verse}</span>
                   <span style={{ ...styles.verseText, ...themeStyles.verseText }}>{verse.text}</span>
@@ -436,6 +672,7 @@ function DailyVerseCard({ bibleService, translation, isDarkMode }) {
       return 'daily';
     }
   });
+  const [collapsed, setCollapsed] = useLocalStorage('votdCollapsed', false);
   const [verse, setVerse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -522,55 +759,79 @@ function DailyVerseCard({ bibleService, translation, isDarkMode }) {
 
   return (
     <div style={cardStyle}>
-      <div style={styles.dvHeader}>
-        <div style={styles.dvHeaderLeft}>
+      <div style={{ ...styles.dvHeader, ...(collapsed ? { marginBottom: 0 } : {}) }}>
+        <button
+          type="button"
+          onClick={() => setCollapsed(c => !c)}
+          aria-expanded={!collapsed}
+          aria-controls="daily-verse-body"
+          style={{ ...styles.dvHeaderLeft, ...styles.dvCollapseButton }}
+        >
           <Sparkles size={22} style={{ color: accent, flexShrink: 0 }} />
           <div>
             <h2 style={styles.dvTitle}>
               {isWeekly ? 'Verse of the Week' : 'Verse of the Day'}
             </h2>
-            <p style={{ ...styles.dvSubtitle, ...subText }}>{today}</p>
+            <p style={{ ...styles.dvSubtitle, ...subText }}>
+              {collapsed && verse ? verse.reference : today}
+            </p>
           </div>
-        </div>
-        <div
-          style={{
-            ...styles.dvToggle,
-            borderColor: isDarkMode ? '#444' : '#e0e0e0',
-          }}
-        >
-          {modeButton('daily', 'Day', Sparkles)}
-          {modeButton('weekly', 'Week', CalendarDays)}
-        </div>
+          <ChevronDown
+            size={20}
+            aria-hidden="true"
+            style={{
+              ...styles.dvChevron,
+              ...subText,
+              transform: collapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+            }}
+          />
+        </button>
+        {!collapsed && (
+          <div
+            style={{
+              ...styles.dvToggle,
+              borderColor: isDarkMode ? '#444' : '#e0e0e0',
+            }}
+          >
+            {modeButton('daily', 'Day', Sparkles)}
+            {modeButton('weekly', 'Week', CalendarDays)}
+          </div>
+        )}
       </div>
 
-      {loading && (
-        <div style={{ ...styles.dvStatus, ...subText }}>
-          <Loader2 size={18} style={styles.spin} />
-          <span>Loading verse…</span>
-        </div>
-      )}
+      {!collapsed && (
+        <div id="daily-verse-body">
 
-      {error && !loading && (
-        <div style={{ ...styles.dvStatus, color: '#c0392b' }}>
-          <AlertTriangle size={18} />
-          <span>Couldn&apos;t load {entry.reference}. Check your connection.</span>
-        </div>
-      )}
+          {loading && (
+            <div style={{ ...styles.dvStatus, ...subText }}>
+              <Loader2 size={18} style={styles.spin} />
+              <span>Loading verse…</span>
+            </div>
+          )}
 
-      {verse && !loading && !error && (
-        <>
-          <blockquote style={styles.dvVerseText}>“{verse.text}”</blockquote>
-          <div>
-            <span style={{ ...styles.dvReference, color: accent }}>
-              {verse.reference}
-            </span>
-            {verse.translationName && (
-              <span style={{ ...styles.dvTranslation, ...subText }}>
-                {verse.translationName}
-              </span>
-            )}
-          </div>
-        </>
+          {error && !loading && (
+            <div style={{ ...styles.dvStatus, color: '#c0392b' }}>
+              <AlertTriangle size={18} />
+              <span>Couldn&apos;t load {entry.reference}. Check your connection.</span>
+            </div>
+          )}
+
+          {verse && !loading && !error && (
+            <>
+              <blockquote style={styles.dvVerseText}>“{verse.text}”</blockquote>
+              <div>
+                <span style={{ ...styles.dvReference, color: accent }}>
+                  {verse.reference}
+                </span>
+                {verse.translationName && (
+                  <span style={{ ...styles.dvTranslation, ...subText }}>
+                    {verse.translationName}
+                  </span>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       )}
     </div>
   );
@@ -596,6 +857,20 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '0.75rem',
+  },
+  dvCollapseButton: {
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    margin: 0,
+    color: 'inherit',
+    font: 'inherit',
+    textAlign: 'left',
+    cursor: 'pointer',
+  },
+  dvChevron: {
+    flexShrink: 0,
+    transition: 'transform 0.2s ease',
   },
   dvTitle: {
     margin: 0,
@@ -973,11 +1248,146 @@ const styles = {
     maxWidth: '700px',
     margin: '0 auto',
   },
+  referenceRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.75rem',
+    marginBottom: '2rem',
+  },
+  saveButton: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '0.25rem',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  sidebarToggle: {
+    position: 'fixed',
+    right: '1.5rem',
+    bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))',
+    width: '52px',
+    height: '52px',
+    borderRadius: '50%',
+    border: 'none',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    zIndex: 997,
+  },
+  sidebarBadge: {
+    position: 'absolute',
+    top: '-4px',
+    right: '-4px',
+    minWidth: '20px',
+    height: '20px',
+    padding: '0 5px',
+    borderRadius: '10px',
+    border: '2px solid',
+    backgroundColor: '#c0392b',
+    color: '#fff',
+    fontSize: '0.7rem',
+    fontWeight: 700,
+    lineHeight: '16px',
+    boxSizing: 'border-box',
+  },
+  sidebar: {
+    position: 'fixed',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: '85%',
+    maxWidth: '360px',
+    border: '1px solid',
+    borderRadius: '16px 0 0 16px',
+    boxShadow: '-4px 0 16px rgba(0,0,0,0.1)',
+    display: 'flex',
+    flexDirection: 'column',
+    transform: 'translateX(100%)',
+    visibility: 'hidden',
+    transition: 'transform 0.3s ease, visibility 0.3s',
+    zIndex: 999,
+  },
+  sidebarOpen: {
+    transform: 'translateX(0)',
+    visibility: 'visible',
+  },
+  sidebarHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 'calc(1.25rem + env(safe-area-inset-top, 0px)) 1.25rem 1.25rem',
+    borderBottom: '1px solid',
+  },
+  sidebarBody: {
+    flex: 1,
+    overflowY: 'auto',
+    padding: '1.25rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom, 0px))',
+  },
+  sidebarSection: {
+    marginBottom: '1.75rem',
+  },
+  sidebarList: {
+    listStyle: 'none',
+    margin: 0,
+    padding: 0,
+  },
+  sidebarItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    borderBottom: '1px solid',
+  },
+  sidebarItemButton: {
+    flex: 1,
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: '0.15rem',
+    padding: '0.65rem 0',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    textAlign: 'left',
+  },
+  sidebarItemTitle: {
+    fontSize: '0.95rem',
+    fontWeight: 600,
+    overflowWrap: 'anywhere',
+  },
+  sidebarItemMeta: {
+    fontSize: '0.75rem',
+  },
+  sidebarIconButton: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '0.35rem',
+    display: 'flex',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  sidebarEmpty: {
+    margin: 0,
+    fontSize: '0.85rem',
+    lineHeight: 1.5,
+  },
+  highlightSwatch: {
+    width: '10px',
+    height: '10px',
+    borderRadius: '50%',
+    border: '1px solid rgba(0,0,0,0.15)',
+    flexShrink: 0,
+  },
   reference: {
     fontSize: '1.75rem',
     fontWeight: '700',
     color: '#2c3e50',
-    marginBottom: '2rem',
+    margin: 0,
     textAlign: 'center',
     letterSpacing: '-0.5px',
   },
